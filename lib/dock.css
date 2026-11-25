@@ -1,0 +1,60 @@
+:root{
+  --bg:#1b1c21; --panel:#24262d; --panel2:#2d3038; --line:#3a3d47; --text:#e8e9ec; --mute:#a0a4b1;
+  --accent:#3d7bfd; --live:#e5484d; --ok:#2a9d63; --warn:#d9a23b;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg);color:var(--text);font:13px/1.4 -apple-system,"Segoe UI",Inter,system-ui,sans-serif}
+body{padding:10px;display:flex;flex-direction:column;gap:9px;min-width:260px;max-width:760px;margin:0 auto}
+button{font:inherit;color:inherit;cursor:pointer}
+button:disabled{opacity:.45;cursor:not-allowed}
+
+/* connection bar */
+.conn{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--mute)}
+.conn .dot{width:8px;height:8px;border-radius:50%;background:#6b6f7b;flex:none}
+.conn.ok .dot{background:var(--ok)} .conn.bad .dot{background:var(--live)} .conn.wait .dot{background:var(--warn)}
+.conn .msg{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.icon-btn{background:var(--panel2);border:1px solid var(--line);border-radius:5px;padding:3px 9px;font-size:12px;font-weight:600}
+.icon-btn:hover{filter:brightness(1.15)}
+
+.setup{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px;display:none;flex-direction:column;gap:8px}
+.setup.open{display:flex}
+.setup label{font-size:12px;color:var(--mute);display:flex;flex-direction:column;gap:4px}
+.setup input{min-width:0;width:100%;background:var(--bg);border:1px solid var(--line);border-radius:5px;padding:7px 9px;color:var(--text);font:13px inherit}
+.setup .row{display:flex;gap:8px}
+.setup .row>*{flex:1}
+.setup p{font-size:12px;color:var(--mute)}
+.setup .result{font-size:12px}
+.setup .result.ok{color:#5fd39a} .setup .result.bad{color:#ff8a8d}
+
+/* file row */
+.file{display:flex;align-items:center;gap:8px;background:var(--panel);border:1px dashed var(--line);border-radius:6px;padding:7px 10px;font-size:12px}
+.file .nm{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.file .count{color:var(--mute);font-variant-numeric:tabular-nums;white-space:nowrap}
+.file input{display:none}
+
+/* big controls */
+.ctrl{display:grid;grid-template-columns:1fr 1.25fr 1fr;gap:7px}
+.b{border-radius:7px;padding:12px 6px;font-weight:700;font-size:13px;background:var(--panel2);border:1px solid var(--line);color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+@media (max-width:400px){ .b{font-size:12px;padding:11px 4px} .ctrl{gap:5px} }
+.b:hover:not(:disabled){filter:brightness(1.15)}
+.b.show{background:var(--ok);border-color:var(--ok)}
+.b.hide{background:var(--live);border-color:var(--live)}
+.hint{font-size:11px;color:var(--mute)}
+kbd{background:var(--panel);border:1px solid var(--line);border-radius:3px;padding:0 5px;font:600 10px inherit}
+.empty{color:var(--mute);font-size:12px;text-align:center;padding:18px 8px;border:1px dashed var(--line);border-radius:8px}
+.tag{display:inline-block;font:700 9.5px/1 inherit;padding:3px 6px;border-radius:3px;color:#fff;background:#555;letter-spacing:.03em}
+.tag.live{background:var(--live)}
+
+/* where Papar goes: Preview (safe) or Program (live) */
+.route{font-size:12px;font-weight:600;line-height:1.35;border-radius:6px;padding:6px 9px;border:1px solid var(--line);background:var(--panel)}
+.route.live{color:#fff;background:rgba(229,72,77,.22);border-color:rgba(229,72,77,.75)}
+.route.prev{color:#c9f2dc;background:rgba(42,157,99,.16);border-color:rgba(42,157,99,.6)}
+.route.warn{color:#ffcf7a;background:rgba(217,162,59,.12);border-color:rgba(217,162,59,.45)}
+
+/* scene checklist in Tetapan */
+.scn{display:flex;flex-direction:column;gap:8px}
+.scn[hidden]{display:none}
+.scn-list{display:flex;flex-direction:column;max-height:180px;overflow:auto;background:var(--bg);border:1px solid var(--line);border-radius:5px;padding:4px 0}
+.setup .scn-list label{flex-direction:row;align-items:center;gap:8px;padding:5px 9px;color:var(--text);font-size:12.5px;cursor:pointer}
+.scn-list label:hover{background:var(--panel2)}
+.scn-list input{accent-color:var(--accent);width:15px;height:15px}

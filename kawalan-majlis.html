@@ -1,0 +1,914 @@
+<!doctype html>
+<html lang="ms">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kawalan Majlis</title>
+<link rel="stylesheet" href="lib/dock.css">
+<script>
+  // Inside Kawalan Majlis Studio (?tertanam=1) the native window has the mode buttons and the large layout.
+  if (new URLSearchParams(location.search).has("tertanam")) document.documentElement.classList.add("tertanam");
+</script>
+<style>
+  html.tertanam .modes{display:none!important} html.tertanam #stBesar{display:none!important}
+  /* Embedded: the native window shows connection, Preview and Program. Keep only warnings that need action. */
+  html.tertanam #kmConn.ok{display:none!important}
+  html.tertanam .route.live,html.tertanam .route.prev{display:none!important}
+</style>
+<style>
+  :root{--bg:#15161a;--panel:#1d1f25;--panel2:#24272e;--line:#32353e;--text:#eceef2;--mute:#9aa0ad;--dim:#6b7180;
+    --live:#e5484d;--live-bg:#3a1517;--cue:#f5a524;--cue-bg:#3a2a0c;--ok:#3fb27f}
+  body{gap:8px;padding:8px}
+  /* Bilik Kawalan: the large layout of the same panel */
+  .bk-bahagian{display:none}
+  body.besar{max-width:none}
+  body.besar .bk-bahagian{display:block}
+  body.besar.tanpa-input #bkInput{display:none}
+  .bawah{display:flex;flex-direction:column;gap:8px}
+  body.besar .bawah{display:grid;grid-template-columns:minmax(360px,1fr) minmax(280px,.85fr);gap:10px;align-items:start}
+  @media (max-width:820px){ body.besar .bawah{grid-template-columns:1fr} }
+  .besarset{display:flex;flex-wrap:wrap;gap:10px;align-items:center;font-size:12.5px;color:var(--mute)}
+  .besarset select{background:var(--bg);border:1px solid var(--line);border-radius:5px;padding:4px 6px;color:var(--text);font-family:inherit}
+  .besarset label{display:flex;gap:6px;align-items:center}
+  [hidden]{display:none!important}
+  .top{display:flex;flex-direction:column;gap:6px}
+  .modes{display:flex;gap:6px}
+  .modebtn{flex:1;border:1px solid var(--line);background:var(--panel2);color:var(--text);border-radius:6px;padding:6px 10px;font-weight:600;font-size:12px}
+  .modebtn.on{background:var(--text);color:var(--bg)}
+  #kmSetupBtn{display:none}
+
+  /* Muzik Latar */
+  .muzik{display:flex;align-items:center;gap:8px;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:6px 10px;font-size:12px}
+  .muzik .t{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--mute)}
+  .muzik .t b{color:var(--text);font-weight:600}
+  .muzik button{background:var(--panel2);border:1px solid var(--line);border-radius:5px;padding:3px 10px;font-weight:700}
+  .muzik button.on{background:var(--ok);border-color:var(--ok);color:#06140d}
+  .muzik input{width:90px;accent-color:var(--ok)}
+  .canvabar button{min-width:44px;font-size:14px}
+  .canvabar.udara{border-color:var(--live)} .canvabar.udara #canvaUdara{color:#ff9a9d}
+  .canvaset{display:flex;gap:6px;align-items:center;flex-wrap:wrap;font-size:12.5px;color:var(--mute)}
+  .canvaset input,.canvaset select{flex:1;min-width:0;background:var(--bg);border:1px solid var(--line);border-radius:5px;padding:6px 8px;color:var(--text);font-family:inherit;font-size:12.5px}
+
+  .box{border-radius:10px;padding:10px 12px}
+  .label{display:flex;align-items:center;gap:8px;font-size:11.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}
+  .air{background:var(--live-bg);border:2px solid var(--live)}
+  .air.clean{background:var(--panel);border:2px dashed var(--line)}
+  .air .label{color:#ff9a9d} .air.clean .label{color:var(--dim)}
+  .pulse{width:10px;height:10px;border-radius:50%;background:var(--live);animation:p 1.2s infinite;flex:none}
+  .air.clean .pulse{background:var(--dim);animation:none}
+  @keyframes p{50%{opacity:.25}}
+  .airrow{display:flex;align-items:center;gap:10px;margin-top:6px}
+  .airtxt{flex:1;min-width:0}
+  .airmain{font-size:17px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .airsub{color:var(--mute);font-size:12.5px;font-variant-numeric:tabular-nums}
+  .airerr{margin-top:6px;font-size:12.5px;color:#ffd0d1;background:#e5484d33;border-radius:6px;padding:6px 8px}
+  .tbar{height:5px;background:#0006;border-radius:3px;margin-top:6px;overflow:hidden} .tbar i{display:block;height:100%;width:0;background:var(--live)}
+  .btn{border:0;border-radius:8px;font-family:inherit;font-weight:800;font-size:14px;cursor:pointer;padding:10px 14px;color:#fff;white-space:nowrap}
+  .btn small{font-weight:600;font-size:11px;opacity:.75}
+  .b-hide{background:var(--live)} .b-hide:disabled{background:var(--panel2);color:var(--dim);cursor:default;opacity:1}
+  .b-jeda{background:var(--panel2);border:1px solid var(--line);font-size:12px;padding:8px 10px}
+
+  .cue{background:var(--cue-bg);border:2px solid var(--cue)}
+  .cue .label{color:var(--cue);justify-content:space-between}
+  .cue .label .link{color:var(--cue);text-transform:none;letter-spacing:0;font-weight:600}
+  .kind{display:flex;align-items:center;gap:8px;margin-top:8px;color:var(--mute);font-size:12.5px;min-width:0}
+  .kind span:last-child{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .kind .ico{font-size:17px}
+  .giliran{display:flex;align-items:baseline;gap:10px;margin-top:4px}
+  .no{font-size:34px;font-weight:900;color:var(--cue);line-height:1;font-variant-numeric:tabular-nums}
+  .of{color:var(--mute);font-size:12.5px}
+  .cuemain{font-size:24px;font-weight:800;line-height:1.15;margin:4px 0 2px;letter-spacing:.01em;word-break:break-word}
+  .cuesub{color:#e9d6b0;font-size:14px}
+  .ffile{margin-top:6px;font-size:12px;color:var(--mute);background:#0004;border-radius:6px;padding:5px 8px;word-break:break-all}
+  .ffile b{color:var(--text)}
+  .sudah{margin-top:6px;font-size:12px;color:#ffcf7a}
+  .go{width:100%;margin-top:10px;background:var(--cue);color:#231700;font-size:18px;padding:14px;border-radius:10px;display:flex;justify-content:center;gap:10px;align-items:center}
+  .go:disabled{background:var(--panel2);color:var(--mute);cursor:not-allowed;font-size:14px;opacity:1;white-space:normal}
+  .nav{display:flex;gap:8px;margin-top:8px}
+  .nav button{flex:1;background:var(--panel2);color:var(--text);border:1px solid var(--line);font-weight:700}
+  .edit{display:flex;flex-direction:column;gap:7px;margin-top:8px}
+  .edit label{font-size:11px;color:var(--mute);display:flex;flex-direction:column;gap:3px}
+  .edit input{background:var(--bg);border:1px solid var(--line);border-radius:5px;padding:7px 9px;color:var(--text);font-size:13px;font-family:inherit}
+  .edit .r2{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+
+  .after{display:grid;gap:6px}
+  .after div{display:flex;gap:8px;align-items:center;background:var(--panel);border-radius:8px;padding:6px 10px;color:var(--mute);font-size:12.5px;min-width:0}
+  .after b{color:var(--text);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .after .n{font-variant-numeric:tabular-nums;color:var(--dim);min-width:34px}
+
+  .search input{width:100%;background:var(--panel);border:1px solid var(--line);color:var(--text);border-radius:8px;padding:8px 10px;font-size:13px;font-family:inherit}
+  .hasil{border:1px solid var(--line);border-radius:8px;overflow:auto;max-height:220px;background:var(--panel)}
+  .hasil div{display:flex;gap:8px;padding:6px 10px;border-top:1px solid var(--line);cursor:pointer;font-size:12.5px}
+  .hasil div:first-child{border-top:0}
+  .hasil div:hover{background:var(--panel2)}
+  .hasil span{color:var(--mute)}
+  .run{border:1px solid var(--line);border-radius:10px;overflow:hidden}
+  .runhead{display:flex;justify-content:space-between;padding:8px 10px;background:var(--panel);font-size:12px;color:var(--mute);font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+  .item{display:flex;gap:10px;align-items:center;padding:9px 10px;border-top:1px solid var(--line);cursor:pointer}
+  .item:hover{background:var(--panel)}
+  .item .ico{width:22px;text-align:center;flex:none}
+  .item .t{flex:1;min-width:0}
+  .item .t b{display:block;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .item .t span{color:var(--mute);font-size:12px}
+  .item.done{opacity:.45} .item.done b{text-decoration:line-through}
+  .item.cued{background:var(--cue-bg);box-shadow:inset 3px 0 var(--cue);opacity:1}
+  .item.onair{background:var(--live-bg);box-shadow:inset 3px 0 var(--live);opacity:1}
+  .prog{width:70px;height:5px;background:var(--panel2);border-radius:3px;overflow:hidden;flex:none} .prog i{display:block;height:100%;background:var(--ok)}
+  .names{max-height:240px;overflow:auto;background:#0003;border-top:1px solid var(--line)}
+  .nm{display:grid;grid-template-columns:38px 1fr auto;gap:8px;padding:5px 10px 5px 14px;font-size:12px;cursor:pointer;align-items:center}
+  .nm:hover{background:var(--panel2)}
+  .nm .k{color:var(--mute);font-size:11px;white-space:nowrap}
+  .nm .i{color:var(--dim);font-variant-numeric:tabular-nums}
+  .nm.shown{color:var(--dim)} .nm.cued{background:var(--cue-bg);color:var(--text)} .nm.onair{background:var(--live-bg);color:var(--text)}
+  .empty{padding:16px 10px}
+  .hint b{color:var(--text)}
+
+  /* Persediaan */
+  .step{display:flex;flex-direction:column;gap:8px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+  .stephead{display:flex;gap:10px;align-items:center}
+  .step .c{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;background:var(--ok);color:#06140d;flex:none}
+  .step .c.todo{background:var(--panel2);color:var(--mute)}
+  .step .t{flex:1;min-width:0} .step .t b{display:block} .step .t span{color:var(--mute);font-size:12.5px}
+  .sbtn{background:var(--panel2);color:var(--text);border:1px solid var(--line);border-radius:6px;padding:6px 10px;font-weight:600;font-size:12px;white-space:nowrap}
+  .sbtn.arm{background:var(--live);border-color:var(--live)}
+  .start{width:100%;background:var(--ok);color:#06140d;font-size:16px;padding:13px;border-radius:10px}
+  .addrow{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+  .addrow .sbtn{text-align:center;padding:7px 4px;cursor:pointer}
+  @media (max-width:380px){.addrow{grid-template-columns:1fr 1fr}}
+  .susun{border:1px solid var(--line);border-radius:8px;overflow:auto;max-height:340px;background:var(--bg)}
+  .su{display:grid;grid-template-columns:20px 22px 1fr auto;gap:7px;align-items:center;padding:6px 8px;border-top:1px solid var(--line);font-size:12px}
+  .su:first-child{border-top:0}
+  .su .n{color:var(--dim);text-align:right;font-variant-numeric:tabular-nums}
+  .su .t{min-width:0} .su .t b{display:block;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .su .t span{color:var(--mute);font-size:11px}
+  .su .t input{width:100%;background:var(--panel);border:1px solid var(--cue);border-radius:4px;padding:4px 6px;color:var(--text);font-size:12px;font-family:inherit}
+  .su .acts{display:flex;gap:3px}
+  .su .acts button{background:var(--panel2);border:1px solid var(--line);border-radius:4px;font-size:11px;padding:2px 6px}
+  .su .acts button.arm{background:var(--live);border-color:var(--live)}
+  .su .acts button:disabled{opacity:.3}
+  .foot{display:flex;justify-content:space-between;align-items:center;gap:8px}
+  .link{background:none;border:0;color:var(--mute);font-size:11px;text-decoration:underline}
+  .msg{font-size:12px;color:#ffcf7a}
+  .msg.info{color:#8fe0b5}
+  .defaward{font-size:11px;color:var(--mute);display:flex;flex-direction:column;gap:3px}
+  .defaward input{background:var(--bg);border:1px solid var(--cue);border-radius:6px;padding:7px 10px;color:var(--text);font-size:13px;font-family:inherit}
+
+  .toast{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);max-width:92vw;background:var(--panel2);border:1px solid var(--line);color:#fff;padding:9px 14px;border-radius:8px;font-weight:700;font-size:13px;opacity:0;transition:opacity .25s;pointer-events:none;text-align:center;z-index:9}
+  .toast.show{opacity:1} .toast.bad{background:var(--live);border-color:var(--live)}
+</style>
+</head>
+<body>
+<div class="top">
+  <div id="bar"></div>
+  <div class="modes">
+    <button class="modebtn" id="mSetup" type="button">✎ Persediaan</button>
+    <button class="modebtn on" id="mShow" type="button">▶ Majlis</button>
+  </div>
+</div>
+
+<!-- ============ MAJLIS ============ -->
+<div class="bk-bahagian" id="bkAtas"></div>
+<div class="bk-bahagian" id="bkMon"></div>
+<div class="bk-bahagian" id="bkInput"></div>
+<div class="bawah" id="bawah">
+<div id="show" style="display:flex;flex-direction:column;gap:8px">
+  <div class="muzik" id="muzik" hidden>
+    <span>♫</span><span class="t">Muzik latar: <b id="muzikNama"></b></span>
+    <button type="button" id="muzikMain" title="Main / henti muzik latar">▶</button>
+    <input type="range" id="muzikVol" min="0" max="100" title="Kuat perlahan muzik latar">
+  </div>
+
+  <div class="muzik canvabar" id="canvaBar" hidden>
+    <span>▤</span><span class="t">Slaid Canva <b id="canvaUdara"></b></span>
+    <button type="button" id="canvaPrev" title="Slaid sebelum (PageUp)">◀</button>
+    <button type="button" id="canvaNext" title="Slaid seterusnya (PageDown)">▶</button>
+  </div>
+
+  <div class="box air clean" id="air">
+    <div class="label"><span class="pulse"></span><span id="airLabel">Skrin bersih · tiada apa ke udara</span></div>
+    <div class="airrow">
+      <div class="airtxt"><div class="airmain" id="airMain">—</div><div class="airsub" id="airSub"></div>
+        <div class="tbar" id="airBar" hidden><i id="airBarI"></i></div></div>
+      <button class="btn b-jeda" id="jeda" type="button" hidden>⏸ Jeda</button>
+      <button class="btn b-hide" id="hide" type="button" disabled>SOROK <small>Esc</small></button>
+    </div>
+    <div class="airerr" id="airErr" hidden></div>
+  </div>
+
+  <div class="box cue" id="cueBox">
+    <div class="label"><span>Sedia · belum keluar</span><button class="link" id="editBtn" type="button" hidden>Betulkan nama</button></div>
+    <div id="cueBody"></div>
+    <form class="edit" id="editForm" hidden>
+      <label>Nama<input id="eNama" autocomplete="off" spellcheck="false"></label>
+      <label>Kelas<input id="eKelas" autocomplete="off"></label>
+      <div class="r2"><button class="b show" type="submit">Simpan</button><button class="b" type="button" id="editCancel">Batal</button></div>
+    </form>
+    <button class="btn go" id="go" type="button"></button>
+    <div class="nav"><button class="btn" id="prev" type="button">◀ Sebelum</button><button class="btn" id="next" type="button">Seterusnya ▶</button></div>
+  </div>
+
+  <div class="after" id="after"></div>
+
+  <div class="search"><input id="q" placeholder="Cari nama / nombor giliran… (Enter = jadikan SEDIA)" autocomplete="off" spellcheck="false"></div>
+  <div class="hasil" id="hasil" hidden></div>
+  <div class="run">
+    <div class="runhead"><span>Aturcara majlis</span><span id="runCount"></span></div>
+    <div id="run"></div>
+  </div>
+  <div class="hint">Klik pada aturcara atau hasil carian hanya menjadikannya <b>SEDIA</b>. Tiada apa keluar ke skrin tanpa butang kuning. <kbd>Space</kbd> butang kuning · <kbd>→</kbd> Seterusnya · <kbd>←</kbd> Sebelum · <kbd>Esc</kbd> SOROK (lagu/video: Esc dua kali untuk HENTI). Klik pada panel dahulu supaya kekunci dan clicker berfungsi.</div>
+</div>
+<div class="bk-bahagian" id="bkAudio"></div>
+</div>
+
+<!-- ============ PERSEDIAAN ============ -->
+<div id="setup" style="display:none;flex-direction:column;gap:8px">
+  <div class="step" id="stSambung">
+    <div class="stephead"><div class="c todo" id="cSambung">1</div><div class="t"><b>Sambung OBS</b><span id="sambungInfo">Belum bersambung</span></div>
+      <button class="sbtn" id="tetapanBtn" type="button">Tetapan</button></div>
+  </div>
+  <div class="step" id="stSenarai">
+    <div class="stephead"><div class="c todo" id="cSenarai">2</div><div class="t"><b>Senarai penerima</b><span id="senaraiInfo">Excel atau CSV: lajur Nama, Kelas, Anugerah</span></div>
+      <label class="sbtn">Pilih fail<input type="file" id="failSenarai" accept=".xlsx,.xls,.csv" hidden></label></div>
+    <label class="defaward" id="defRow" hidden>Anugerah untuk nama tanpa lajur Anugerah<input id="defAward" placeholder="Contoh: Anugerah Akademik" autocomplete="off"></label>
+    <div class="msg" id="senaraiMsg" hidden></div>
+    <div class="hint">Satu seksyen dibina bagi setiap anugerah, ikut turutan dalam fail. Fail yang dibetulkan boleh dimuat semula: tanda "sudah dipapar" dikekalkan ikut nama.</div>
+  </div>
+  <div class="step" id="stAturcara">
+    <div class="stephead"><div class="c todo" id="cAturcara">3</div><div class="t"><b>Aturcara majlis</b><span id="aturcaraInfo">Susun ikut turutan sebenar</span></div></div>
+    <div class="addrow">
+      <button class="sbtn" id="addLagu" type="button">+ Lagu</button>
+      <button class="sbtn" id="addVideo" type="button">+ Video</button>
+      <label class="sbtn">+ Slaid PDF<input type="file" id="failPdf" accept="application/pdf,.pdf" multiple hidden></label>
+      <label class="sbtn">+ Gambar<input type="file" id="failGambar" accept="image/*" multiple hidden></label>
+    </div>
+    <div class="msg" id="aturcaraMsg" hidden></div>
+    <div class="susun" id="susun"></div>
+    <div class="hint">Lagu dan video: tekan butang, pilih fail dalam tetingkap OBS (Browse), kemudian OK. Jangan alih atau tukar nama fail selepas ditambah. Tempoh lagu ditunjuk selepas lagu dimainkan sekali: main setiap lagu sekali untuk semakan sebelum majlis. Slaid PowerPoint: eksport sebagai PDF dahulu. Slaid Canva dengan animasi: guna langkah 4.</div>
+    <div class="foot"><span class="hint" id="tandaInfo"></span><button class="link" id="resetTanda" type="button">Kosongkan tanda "sudah dipapar"</button></div>
+  </div>
+  <div class="step" id="stCanva">
+    <div class="stephead"><div class="c todo" id="cCanva">4</div><div class="t"><b>Slaid Canva</b><span id="canvaInfo">Pilihan: slaid Canva dengan animasi, terus dari internet</span></div></div>
+    <div class="canvaset"><input id="canvaUrl" placeholder="Tampal pautan Canva (Kongsi → Salin pautan)" spellcheck="false"><button class="sbtn" id="canvaSimpan" type="button">Simpan</button></div>
+    <div class="canvaset"><span>Skrin projektor:</span><select id="skrinPilih"><option value="">Belum dipasang</option></select><button class="sbtn" id="skrinPasang" type="button">Pasang</button></div>
+    <div class="msg" id="canvaMsg" hidden></div>
+    <div class="hint">Slaid Canva menjadi input "Slaid Canva": pilih seperti kamera. Semasa majlis tukar slaid dengan butang ◀ ▶ atau clicker (PageUp/PageDown). Jika slaid dikawal orang lain dengan Canva Present di projektor, pasang "Skrin projektor": input "Skrin Projektor" menunjukkan skrin itu, dan alat kawalan jauh Canva berfungsi seperti biasa.</div>
+  </div>
+  <div class="step" id="stMuzik">
+    <div class="stephead"><div class="c todo" id="cMuzik">5</div><div class="t"><b>Muzik latar</b><span id="muzikInfo">Pilihan: muzik berulang semasa menunggu, dikecilkan sendiri bila lagu aturcara dimainkan</span></div>
+      <button class="sbtn" id="pilihMuzik" type="button">Pilih fail</button></div>
+  </div>
+  <div class="step" id="stReka">
+    <div class="stephead"><div class="c todo" id="cReka">6</div><div class="t"><b>Reka paparan nama</b><span id="rekaInfo">Belum · gaya lalai akan digunakan</span></div>
+      <button class="sbtn" id="rekaBtn" type="button">Reka</button></div>
+    <div id="rekaBox"></div>
+  </div>
+  <div class="step" id="stBesar">
+    <div class="stephead"><div class="c" style="background:var(--panel2);color:var(--mute)">▦</div><div class="t"><b>Paparan besar (Bilik Kawalan)</b><span>Preview, Program, input, peralihan dan audio dalam satu skrin. Tarik panel ini keluar dari OBS dan besarkan, atau buka di skrin kedua.</span></div></div>
+    <div class="besarset">
+      <label>Bila dipapar <select id="besarMod"><option value="auto">Auto (panel lebar 1000 piksel ke atas)</option><option value="sentiasa">Sentiasa</option><option value="tidak">Tidak</option></select></label>
+      <label><input type="checkbox" id="besarInput"> Tunjuk deretan input (sembunyikan jika kamera ditukar dengan switcher)</label>
+    </div>
+  </div>
+  <button class="btn start" id="start" type="button">Mula Majlis ▶</button>
+  <p class="hint">Kawalan Majlis v2.0 oleh Cikgu Aime · perisian bebas GPL (LESEN.txt)</p>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="lib/obs.js"></script>
+<script src="lib/dock.js"></script>
+<script src="lib/idb.js"></script>
+<script src="lib/gaya.js"></script>
+<script src="lib/xlsx.full.min.js"></script>
+<script src="lib/pdf.min.js"></script>
+<script src="lib/pdf.worker.min.js"></script>
+<script src="lib/aturcara.js"></script>
+<script src="lib/senarai.js"></script>
+<script src="lib/dek.js"></script>
+<script src="lib/reka.js"></script>
+<script src="lib/bilik.js"></script>
+<script>
+(function () {
+  "use strict";
+  const $ = id => document.getElementById(id);
+  const { store, VIDEO_NAME, MUZIK_NAME } = KM.dock;
+  const P = KM.Pengarah;
+  const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const mmss = ms => { if (!(ms > 0)) return "—"; const s = Math.round(ms / 1000); return Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0"); };
+  const ICO = { nama: "🏅", lagu: "♪", video: "🎬", slaid: "▤", gambar: "🖼" };
+  const JENIS = { nama: "Nama penerima", lagu: "Lagu (bunyi ke dewan dan siaran)", video: "Video (gambar dan bunyi)", slaid: "Slaid PDF", gambar: "Gambar" };
+
+  // ---------- state ----------
+  function muatKeadaan() {
+    const s = store.get("majlis.state", null);
+    if (s && Array.isArray(s.aturcara)) return s;
+    // First run after v1.2: build the Aturcara from the old docks' data (old keys are kept).
+    return P.naikTaraf({ mediaItems: store.get("media.items", []), rows: store.get("anugerah.rows", []),
+      defAward: store.get("anugerah.default", ""), cur: store.get("anugerah.cur", 0), done: store.get("anugerah.done", []) });
+  }
+  let p = new P(muatKeadaan());
+  let defAward = store.get("majlis.defAward", store.get("anugerah.default", ""));
+  const simpan = () => store.set("majlis.state", p.toJSON());
+  function gantiKeadaan(st) { p = new P(st); simpan(); render(); }
+
+  const obs = KM.dock.mount($("bar"), { onConnected, events: KM.SUB.General | KM.SUB.Scenes | KM.SUB.Inputs | KM.SUB.MediaInputs | KM.SUB.Transitions | KM.SUB.Outputs | KM.SUB.InputVolumeMeters });
+  const reka = KM.reka.mount($("rekaBox"), { obs, store, contoh: () => {
+    const h = p.huraikan(p.sedia); return h && h.jenis === "nama" ? { anugerah: h.anugerah, nama: h.utama, kelas: h.kecil } : null; } });
+
+  // ---------- toast ----------
+  let toastT = null;
+  function toast(t, bad) {
+    const e = $("toast"); e.textContent = t; e.className = "toast show" + (bad ? " bad" : "");
+    clearTimeout(toastT); toastT = setTimeout(() => { e.className = "toast" + (bad ? " bad" : ""); }, bad ? 3200 : 1800);
+  }
+
+  // ---------- carrying out actions (in order, one at a time) ----------
+  let antrian = Promise.resolve(), memulakan = false, airErr = "", kuningAkhir = 0;
+  let muzikVol = store.get("majlis.muzikVol", 60) / 100, mediaSeq = 0;
+  const laksana = tindakan => (antrian = antrian.then(() => jalankan(tindakan)).catch(e => toast("Gagal: " + e.message, true)));
+  async function jalankan(tindakan) {
+    for (const a of tindakan) {
+      if (a.t === "nama") await obs.broadcast({ type: "nama", show: a.show, nama: a.nama || "", kelas: a.kelas || "", anugerah: a.anugerah || "" }).catch(() => {});
+      else if (a.t === "media") await hantarMedia(a);
+      else if (a.t === "duck") await duck(a.ke);
+      else if (a.t === "henti") await henti();
+      else if (a.t === "main") await main(a.item);
+    }
+  }
+  async function hantarMedia(a) {
+    const my = ++mediaSeq;
+    if (!a.show) { await obs.broadcast({ type: "media", show: false }).catch(() => {}); return; }
+    try {
+      const src = await KM.dek.halaman(a.item, a.halaman);
+      if (my !== mediaSeq) return;                  // a newer action replaced this one
+      await obs.broadcast({ type: "media", show: true, src, key: a.item.id + ":" + a.halaman });
+    } catch (e) { airErr = "Tidak dapat memapar " + a.item.tajuk + ": " + e.message; render(); }
+  }
+  // Background music fades run one after another, but never hold up the song itself.
+  let duckChain = Promise.resolve(), ditunduk = false;
+  function duck(ke) {
+    ditunduk = ke === "rendah";
+    if (!muzikMain) return;
+    duckChain = duckChain.then(() => KM.dock.pudar(obs, MUZIK_NAME, ke === "rendah" ? muzikVol * 0.15 : muzikVol, 800)).catch(() => {});
+  }
+  async function main(item) {
+    memulakan = true; render();
+    try {
+      const tempoh = await KM.dock.mainFail(obs, item.laluan);
+      if (tempoh && item.tempoh !== tempoh) { item.tempoh = tempoh; simpan(); }
+      mulaPantau();
+    } catch (e) {
+      airErr = e.message;
+      const r = p.mainTamat(); simpan();
+      await jalankan(r.tindakan);
+    } finally { memulakan = false; render(); }
+  }
+  async function henti() {
+    berhentiPantau();
+    const { inputVolumeMul: asal } = await obs.call("GetInputVolume", { inputName: VIDEO_NAME }).catch(() => ({ inputVolumeMul: 1 }));
+    await KM.dock.pudar(obs, VIDEO_NAME, 0, 800).catch(() => {});
+    await obs.call("TriggerMediaInputAction", { inputName: VIDEO_NAME, mediaAction: "OBS_WEBSOCKET_MEDIA_INPUT_ACTION_STOP" }).catch(() => {});
+    await KM.dock.setVideoVisible(obs, false).catch(() => {});
+    await obs.call("SetInputVolume", { inputName: VIDEO_NAME, inputVolumeMul: asal > 0.01 ? asal : 1 }).catch(() => {});
+  }
+
+  // ---------- commands ----------
+  function arahan(nama, ...args) {
+    const r = p[nama](...args);
+    if (!r.ok) { if (r.sebab) toast(r.sebab, true); return r; }
+    if (nama !== "sediakan") airErr = "";
+    // Mark the start now, not when the queue reaches it: a late "ended" event from the previous song
+    // (still fading out) must not unlock the new one.
+    if (r.tindakan.some(a => a.t === "main")) memulakan = true;
+    simpan(); laksana(r.tindakan); render(); ikutSedia();
+    return r;
+  }
+  function sediakan(pos) {
+    kuningAkhir = 0;   // a deliberate pick: the double-press guard does not apply
+    const r = arahan("sediakan", pos);
+    if (r.ok) toast(p.sedangMain ? "Disediakan sahaja. Lagu masih dimainkan." : "Disediakan sahaja, belum keluar");
+  }
+  // A double press or a bouncing clicker must not put two names out (the first would flash and be skipped).
+  // Some clickers send Esc from their "slideshow" button: on a song, Esc must be pressed twice.
+  let escArm = 0;
+  function tekanEsc() {
+    if (p.sedangMain && Date.now() - escArm > 2000) { escArm = Date.now(); return toast("Lagu sedang dimainkan. Tekan Esc sekali lagi untuk HENTI.", true); }
+    escArm = 0; arahan("sorok");
+  }
+  const kuning = () => {
+    if (memulakan) return toast("Lagu sedang dimulakan…", true);
+    if (Date.now() - kuningAkhir < 600) return;
+    kuningAkhir = Date.now();
+    arahan("kuning");
+  };
+  $("go").onclick = kuning;
+  $("hide").onclick = () => arahan("sorok");
+  $("next").onclick = () => arahan("seterusnya");
+  $("prev").onclick = () => arahan("sebelum");
+  // A button keeps focus after a click: Space would then "click" it again. Drop the focus.
+  document.addEventListener("click", e => { if (e.target.closest("button")) setTimeout(() => { const a = document.activeElement; if (a && a.tagName === "BUTTON") a.blur(); }, 0); });
+
+  let mod = "majlis";
+  document.addEventListener("keydown", e => {
+    if (mod !== "majlis" || ["INPUT", "SELECT", "TEXTAREA"].includes(e.target.tagName)) return;
+    if (e.key === " ") { e.preventDefault(); if (!e.repeat) kuning(); }
+    else if ((e.key === "PageDown" || e.key === "PageUp") && canvaDiUdara) { e.preventDefault(); canvaLangkah(e.key === "PageDown" ? 1 : -1); }
+    else if (["ArrowRight", "ArrowDown", "PageDown"].includes(e.key)) { e.preventDefault(); arahan("seterusnya"); }
+    else if (["ArrowLeft", "ArrowUp", "PageUp"].includes(e.key)) { e.preventDefault(); arahan("sebelum"); }
+    else if (e.key === "Escape") { e.preventDefault(); if (!e.repeat) tekanEsc(); }
+  });
+
+  // ---------- song / video: progress, end, recovery ----------
+  let pantauT = null, kunciT = null;
+  function mulaPantau() {
+    berhentiPantau();
+    pantauT = setInterval(async () => {
+      if (!p.sedangMain) return berhentiPantau();
+      try {
+        const s = await KM.dock.statusMain(obs);
+        $("airBarI").style.width = s.tempoh ? (100 * s.kursor / s.tempoh) + "%" : "0";
+        const it = p.item(p.udara);
+        $("airSub").textContent = (it ? (it.fail || "") + " · " : "") + mmss(s.kursor) + " / " + mmss(s.tempoh) + (s.paused ? " · dijeda" : "");
+        $("jeda").textContent = s.paused ? "▶ Sambung" : "⏸ Jeda";
+      } catch (_) {}
+    }, 500);
+    // A missed "ended" event must not keep the yellow button locked: ask OBS every 2 s.
+    kunciT = setInterval(async () => {
+      if (!p.sedangMain) return;
+      if (memulakan) return;
+      try { const s = await KM.dock.statusMain(obs); if (!s.playing && !s.paused) selesaiMain(); } catch (_) {}
+    }, 2000);
+  }
+  function berhentiPantau() { clearInterval(pantauT); clearInterval(kunciT); pantauT = kunciT = null; }
+  function selesaiMain() {
+    if (!p.sedangMain) return;
+    const r = p.mainTamat(); simpan(); berhentiPantau();
+    KM.dock.setVideoVisible(obs, false).catch(() => {});
+    laksana(r.tindakan); render(); ikutSedia();
+    const h = p.huraikan(p.sedia);
+    toast("Tamat dan disorok." + (h ? " SEDIA: " + h.utama : ""));
+  }
+  obs.on("event", ev => {
+    const d = ev.eventData || {};
+    if (ev.eventType === "MediaInputPlaybackEnded" && d.inputName === VIDEO_NAME && !memulakan) selesaiMain();
+    if (d.inputName === MUZIK_NAME && /^(MediaInputPlayback(Started|Ended)|InputSettingsChanged)$/.test(ev.eventType)) semakMuzik();
+  });
+  $("jeda").onclick = async () => {
+    if (!p.sedangMain) return;
+    const s = await KM.dock.statusMain(obs).catch(() => null); if (!s) return;
+    await obs.call("TriggerMediaInputAction", { inputName: VIDEO_NAME, mediaAction: "OBS_WEBSOCKET_MEDIA_INPUT_ACTION_" + (s.paused ? "PLAY" : "PAUSE") }).catch(() => {});
+  };
+
+  async function onConnected() {
+    reka.sendGaya();
+    semakMuzik();
+    semakCanva();
+    KM.dock.ensureVideo(obs).catch(() => {});   // also moves the background music's album art off the screen
+    // Trust OBS about whether a song is still playing (dock reloaded mid-song).
+    try {
+      const s = await KM.dock.statusMain(obs);
+      if (s.playing || s.paused) {
+        let i = p.udara && p.item(p.udara).laluan === s.laluan ? p.udara.i : p.aturcara.findIndex(x => (x.jenis === "lagu" || x.jenis === "video") && x.laluan === s.laluan);
+        if (i >= 0) { p.pulihMain(true, i); simpan(); mulaPantau(); }
+      } else if (p.sedangMain) { const r = p.pulihMain(false); simpan(); laksana(r.tindakan); }
+    } catch (_) {}
+    hantarSemula();
+    render();
+  }
+  // The overlay (re)loaded: put back what should be on screen.
+  function hantarSemula() {
+    const it = p.item(p.udara);
+    if (!it || p.sedangMain) { obs.broadcast({ type: "nama", show: false }).catch(() => {}); obs.broadcast({ type: "media", show: false }).catch(() => {}); return; }
+    if (it.jenis === "nama") { const r = it.senarai[p.udara.s]; laksana([{ t: "media", show: false }, { t: "nama", show: true, nama: r.nama, kelas: r.kelas, anugerah: it.tajuk }]); }
+    else laksana([{ t: "nama", show: false }, { t: "media", show: true, item: it, halaman: p.udara.s }]);
+  }
+  obs.on("custom", d => { if (d && d.app === "kawalan-majlis" && d.type === "paparan-sedia") hantarSemula(); });
+
+  // ---------- Slaid Canva + projector screen ----------
+  let canvaAda = false, canvaDiUdara = false, skrin = null;
+  async function semakCanva() {
+    try {
+      const [url, prog] = await Promise.all([KM.dock.canvaUrl(obs), obs.call("GetCurrentProgramScene")]);
+      canvaAda = !!url;
+      canvaDiUdara = canvaAda && prog.currentProgramSceneName === KM.dock.CANVA_SCENE;
+      if (url && $("canvaUrl") !== document.activeElement && !$("canvaUrl").value) $("canvaUrl").value = url;
+      skrin = await KM.dock.senaraiSkrin(obs).catch(() => null);
+    } catch (_) {}
+    renderCanva();
+  }
+  function renderCanva() {
+    $("canvaBar").hidden = !canvaAda;
+    $("canvaBar").classList.toggle("udara", canvaDiUdara);
+    $("canvaUdara").textContent = canvaDiUdara ? "· KE UDARA" : "";
+    if (mod !== "persediaan") return;
+    tanda("cCanva", canvaAda || !!skrin, 4);
+    $("canvaInfo").textContent = canvaAda ? "Input \"Slaid Canva\" sedia" + (skrin ? " · Skrin Projektor sedia" : "") : skrin ? "Input \"Skrin Projektor\" sedia" : "Pilihan: slaid Canva dengan animasi, terus dari internet";
+    $("canvaSimpan").disabled = $("skrinPasang").disabled = obs.state !== "connected";
+    const sel = $("skrinPilih");
+    if (document.activeElement !== sel) {
+      sel.innerHTML = skrin ? skrin.pilihan.map(x => `<option value="${esc(x.id)}"${x.id === skrin.semasa ? " selected" : ""}>${esc(x.nama)}</option>`).join("") : `<option value="">Belum dipasang</option>`;
+      sel.disabled = !skrin;
+    }
+    $("skrinPasang").textContent = skrin ? "Tukar" : "Pasang";
+  }
+  const canvaMsg = (t, ralat) => { $("canvaMsg").hidden = !t; $("canvaMsg").textContent = t || ""; $("canvaMsg").className = "msg" + (ralat ? "" : " info"); };
+  async function canvaLangkah(arah) {
+    if (!(await KM.dock.canvaLangkah(obs, arah))) toast("Slaid Canva hanya boleh ditukar dari sini dalam Kawalan Majlis Studio. Dalam OBS biasa: klik kanan sumber Canva → Interact.", true);
+  }
+  $("canvaPrev").onclick = () => canvaLangkah(-1);
+  $("canvaNext").onclick = () => canvaLangkah(1);
+  $("canvaSimpan").onclick = async () => {
+    const v = $("canvaUrl").value.trim(); if (!v) return $("canvaUrl").focus();
+    $("canvaSimpan").disabled = true; canvaMsg("Memasang slaid Canva…");
+    try { const u = await KM.dock.pasangCanva(obs, v); $("canvaUrl").value = u; canvaMsg("Siap. Pilih input \"Slaid Canva\" untuk memaparkannya. Slaid dimuat dari internet: semak paparannya sebelum majlis."); }
+    catch (e) { canvaMsg(e.message, true); }
+    $("canvaSimpan").disabled = false; semakCanva();
+  };
+  $("canvaUrl").addEventListener("keydown", e => { if (e.key === "Enter") $("canvaSimpan").click(); });
+  $("skrinPasang").onclick = async () => {
+    $("skrinPasang").disabled = true;
+    try { await KM.dock.pasangSkrin(obs, skrin ? $("skrinPilih").value : ""); await semakCanva(); canvaMsg(skrin && skrin.pilihan.length > 1 ? "Input \"Skrin Projektor\" sedia. Pastikan skrin yang dipilih ialah skrin projektor, bukan skrin laptop." : "Input \"Skrin Projektor\" sedia. Sambung projektor (skrin kedua), kemudian pilih skrinnya di sini."); }
+    catch (e) { canvaMsg("Skrin projektor: " + e.message, true); }
+    $("skrinPasang").disabled = false;
+  };
+  $("skrinPilih").onchange = async () => { try { await KM.dock.pasangSkrin(obs, $("skrinPilih").value); } catch (e) { canvaMsg(e.message, true); } semakCanva(); };
+  obs.on("event", ev => { if (/^(CurrentProgramSceneChanged|InputCreated|InputRemoved|InputSettingsChanged|SceneListChanged)$/.test(ev.eventType)) semakCanva(); });
+
+  // ---------- Muzik Latar ----------
+  let muzikMain = false, muzikNama = store.get("majlis.muzik", "");
+  async function semakMuzik() {
+    try {
+      const [s, { inputSettings }] = await Promise.all([obs.call("GetMediaInputStatus", { inputName: MUZIK_NAME }), obs.call("GetInputSettings", { inputName: MUZIK_NAME })]);
+      // Just started: no duration yet. Keep what we know and look again shortly.
+      if (s.mediaState === "OBS_MEDIA_STATE_PLAYING" && !(s.mediaDuration > 0)) setTimeout(semakMuzik, 1000);
+      else muzikMain = s.mediaState === "OBS_MEDIA_STATE_PLAYING";
+      muzikNama = KM.dock.namaFail(inputSettings.local_file); store.set("majlis.muzik", muzikNama);
+    } catch (_) { muzikMain = false; }
+    renderMuzik();
+  }
+  function renderMuzik() {
+    $("muzik").hidden = !muzikNama;
+    $("muzikNama").textContent = muzikNama;
+    $("muzikMain").textContent = muzikMain ? "■" : "▶";
+    $("muzikMain").classList.toggle("on", muzikMain);
+    $("muzikVol").value = Math.round(muzikVol * 100);
+    renderSetup();
+  }
+  $("muzikMain").onclick = async () => {
+    try {
+      if (muzikMain) {
+        await KM.dock.pudar(obs, MUZIK_NAME, 0, 800);
+        await obs.call("TriggerMediaInputAction", { inputName: MUZIK_NAME, mediaAction: "OBS_WEBSOCKET_MEDIA_INPUT_ACTION_STOP" });
+        muzikMain = false;
+      } else {
+        await obs.call("SetInputVolume", { inputName: MUZIK_NAME, inputVolumeMul: ditunduk ? muzikVol * 0.15 : muzikVol });
+        await obs.call("TriggerMediaInputAction", { inputName: MUZIK_NAME, mediaAction: "OBS_WEBSOCKET_MEDIA_INPUT_ACTION_RESTART" });
+        muzikMain = true;
+      }
+      renderMuzik();
+    } catch (e) { toast("Muzik latar: " + e.message, true); }
+    setTimeout(semakMuzik, 400);
+  };
+  $("muzikVol").oninput = () => {
+    muzikVol = +$("muzikVol").value / 100; store.set("majlis.muzikVol", Math.round(muzikVol * 100));
+    if (muzikMain) obs.call("SetInputVolume", { inputName: MUZIK_NAME, inputVolumeMul: ditunduk ? muzikVol * 0.15 : muzikVol }).catch(() => {});
+  };
+
+  // ---------- fix a typo during the event ----------
+  let editPos = null;
+  $("editBtn").onclick = () => {
+    const h = p.huraikan(p.sedia); if (!h || h.jenis !== "nama") return;
+    editPos = { i: p.sedia.i, s: p.sedia.s };
+    $("eNama").value = h.utama; $("eKelas").value = h.kecil; $("editForm").hidden = false; $("eNama").focus();
+  };
+  $("editCancel").onclick = () => { $("editForm").hidden = true; };
+  $("editForm").onsubmit = e => {
+    e.preventDefault();
+    const nama = KM.senarai.norm($("eNama").value); if (!nama) return $("eNama").focus();
+    const it = editPos && p.item(editPos);
+    if (!it || it.jenis !== "nama" || !it.senarai[editPos.s]) { $("editForm").hidden = true; return; }
+    it.senarai[editPos.s] = { nama, kelas: KM.senarai.norm($("eKelas").value) };
+    simpan(); $("editForm").hidden = true;
+    if (p.udara && p.udara.i === editPos.i && p.udara.s === editPos.s) hantarSemula();
+    editPos = null;
+    render();
+  };
+
+  // ---------- search ----------
+  function cariSemua(q) {
+    q = q.trim().toLowerCase(); if (!q) return [];
+    if (/^\d+$/.test(q)) { const pos = p.cari(q); return pos ? [pos] : []; }
+    const out = [];
+    p.aturcara.forEach((it, i) => { if (it.jenis === "nama") it.senarai.forEach((r, s) => { if (out.length < 50 && (r.nama + " " + r.kelas).toLowerCase().includes(q)) out.push({ i, s }); }); });
+    return out;
+  }
+  $("q").oninput = () => {
+    const res = cariSemua($("q").value);
+    $("hasil").hidden = !$("q").value.trim();
+    $("hasil").innerHTML = res.length ? res.map(pos => {
+      const it = p.item(pos), r = it.senarai[pos.s];
+      return `<div data-i="${pos.i}" data-s="${pos.s}"><b>#${pos.s + 1}</b> ${esc(r.nama)} <span>${esc(r.kelas)} · ${esc(it.tajuk)}${p.dipapar.has(pos.i + ":" + pos.s) ? " · sudah dipapar" : ""}</span></div>`;
+    }).join("") : `<div><span>Tiada padanan</span></div>`;
+  };
+  $("hasil").onclick = e => { const el = e.target.closest("[data-i]"); if (!el) return; sediakan({ i: +el.dataset.i, s: +el.dataset.s }); tutupCari(); };
+  $("q").addEventListener("keydown", e => {
+    if (e.key === "Escape") { tutupCari(); return; }
+    if (e.key !== "Enter") return;
+    const res = cariSemua($("q").value);
+    if (!res.length) return toast("Tiada padanan", true);
+    sediakan(res[0]); tutupCari();
+  });
+  function tutupCari() { $("q").value = ""; $("hasil").hidden = true; $("q").blur(); }
+
+  // ---------- Aturcara list ----------
+  $("run").onclick = e => {
+    const nm = e.target.closest("[data-s]");
+    if (nm) return sediakan({ i: +nm.dataset.i, s: +nm.dataset.s });
+    const row = e.target.closest("[data-i]"); if (!row) return;
+    const i = +row.dataset.i, it = p.aturcara[i];
+    if (p.sedia && p.sedia.i === i) return toast("Item ini sudah SEDIA");
+    // A name section: the first name not shown yet.
+    let s = 0;
+    if (it.jenis === "nama") { s = it.senarai.findIndex((_, k) => !p.dipapar.has(i + ":" + k)); if (s < 0) s = 0; }
+    sediakan({ i, s });
+  };
+
+  // ---------- render ----------
+  function render() {
+    const kosong = !p.aturcara.length;
+    renderAir(); renderCue(kosong); renderAfter(); renderRun(kosong); renderMuzik();
+    $("mSetup").disabled = !p.bolehPersediaan;
+    $("mSetup").title = p.bolehPersediaan ? "" : "SOROK atau HENTI dahulu sebelum membuka Persediaan";
+  }
+  function renderAir() {
+    const it = p.item(p.udara), A = $("air");
+    $("airErr").hidden = !airErr; $("airErr").textContent = airErr ? "⚠ " + airErr : "";
+    if (!it) {
+      A.className = "box air clean"; $("airLabel").textContent = "Skrin bersih · tiada apa ke udara";
+      $("airMain").textContent = "—"; $("airSub").textContent = ""; $("hide").disabled = true;
+      $("hide").innerHTML = "SOROK <small>Esc</small>"; $("airBar").hidden = true; $("jeda").hidden = true; return;
+    }
+    const h = p.huraikan(p.udara), main = it.jenis === "lagu" || it.jenis === "video";
+    A.className = "box air"; $("airLabel").textContent = "Ke udara sekarang";
+    $("airMain").textContent = (h.giliran ? "#" + h.giliran.no + "  " : "") + h.utama;
+    if (!main) $("airSub").textContent = h.jenis === "nama" ? [h.kecil, h.anugerah].filter(Boolean).join(" · ") : h.kecil;
+    else if (!pantauT) $("airSub").textContent = (it.fail || "") + (memulakan ? " · memulakan…" : "");
+    $("hide").disabled = false; $("hide").innerHTML = (main ? "HENTI" : "SOROK") + " <small>Esc</small>";
+    $("airBar").hidden = !main; $("jeda").hidden = !main;
+  }
+  function renderCue(kosong) {
+    const go = $("go");
+    $("editBtn").hidden = true;
+    if (kosong || !p.sedia) {
+      $("cueBody").innerHTML = `<div class="empty">Aturcara kosong. Buka <b>✎ Persediaan</b> untuk menambah senarai penerima, lagu, video dan slaid.</div>`;
+      go.disabled = true; go.innerHTML = "Tiada item SEDIA"; return;
+    }
+    const it = p.item(p.sedia), h = p.huraikan(p.sedia);
+    const sudah = it.jenis === "nama" && p.dipapar.has(p.sedia.i + ":" + p.sedia.s);
+    $("editBtn").hidden = it.jenis !== "nama";
+    $("cueBody").innerHTML =
+      `<div class="kind"><span class="ico">${ICO[it.jenis]}</span><span>${JENIS[it.jenis]}${it.jenis === "nama" ? " · " + esc(it.tajuk) : ""}</span></div>` +
+      (h.giliran ? `<div class="giliran"><span class="no">${h.giliran.no}</span><span class="of">daripada ${h.giliran.daripada}</span></div>` : "") +
+      `<div class="cuemain">${esc(h.utama)}</div>` +
+      (it.jenis === "nama" ? `<div class="cuesub">${esc(h.kecil)}</div>` : (it.jenis === "slaid" || it.jenis === "gambar") ? `<div class="cuesub">${esc(h.kecil)}</div>` : "") +
+      ((it.jenis === "lagu" || it.jenis === "video") ? `<div class="ffile">Fail: <b>${esc(it.fail || KM.dock.namaFail(it.laluan))}</b> · tempoh <b>${mmss(it.tempoh)}</b></div>` : "") +
+      (sudah ? `<div class="sudah">⚠ Nama ini sudah dipapar tadi.</div>` : "");
+    const kunci = p.sedangMain || memulakan;
+    go.disabled = kunci;
+    if (kunci) go.innerHTML = `🔒 ${p.item(p.udara) && p.item(p.udara).jenis === "video" ? "Video" : "Lagu"} sedang dimainkan · tekan HENTI dahulu`;
+    else go.innerHTML = (h.butang === "MAIN LAGU" ? "♪ MAIN LAGU" : h.butang === "MAIN VIDEO" ? "▶ MAIN VIDEO" : "PAPAR") + " <small>Space</small>";
+    $("prev").disabled = !p.langkah(p.sedia, -1) && !(p.udara && p.udara.s > 0);
+    $("next").disabled = !p.langkah(p.sedia, 1) && !p.udara;
+  }
+  function renderAfter() {
+    const a1 = p.langkah(p.sedia, 1), a2 = a1 && p.langkah(a1, 1);
+    $("after").innerHTML = [a1, a2].filter(Boolean).map((c, k) => {
+      const h = p.huraikan(c);
+      return `<div><span class="n">${h.giliran ? "#" + h.giliran.no : ICO[h.jenis]}</span><span>${k ? "Kemudian" : "Selepas ini"}:</span><b>${esc(h.utama)}</b></div>`;
+    }).join("");
+  }
+  function renderRun(kosong) {
+    $("runCount").textContent = kosong ? "" : p.selesai.size + " / " + p.aturcara.length + " selesai";
+    $("run").innerHTML = kosong ? `<div class="item empty"><span class="t"><span>Belum ada item.</span></span></div>` : p.aturcara.map((it, i) => {
+      const st = p.udara && p.udara.i === i ? "onair" : p.sedia && p.sedia.i === i ? "cued" : p.selesai.has(i) ? "done" : "";
+      let right = "", sub = "";
+      if (it.jenis === "nama") {
+        const n = it.senarai.reduce((a, _, s) => a + (p.dipapar.has(i + ":" + s) ? 1 : 0), 0);
+        right = `<div class="prog"><i style="width:${it.senarai.length ? n / it.senarai.length * 100 : 0}%"></i></div>`;
+        sub = n + " / " + it.senarai.length + " nama dipapar";
+      } else if (it.jenis === "lagu" || it.jenis === "video") sub = (it.fail || KM.dock.namaFail(it.laluan)) + (it.tempoh ? " · " + mmss(it.tempoh) : "");
+      else sub = (it.halaman || 1) + (it.jenis === "slaid" ? " halaman" : " gambar");
+      let html = `<div class="item ${st}" data-i="${i}"><span class="ico">${ICO[it.jenis]}</span><div class="t"><b>${esc(it.tajuk)}</b><span>${esc(sub)}</span></div>${right}</div>`;
+      // Names of the SEDIA section, so the operator can pick one (capped for speed).
+      if (it.jenis === "nama" && p.sedia && p.sedia.i === i) {
+        const dari = Math.max(0, Math.min(p.sedia.s - 200, it.senarai.length - 400)), hingga = Math.min(it.senarai.length, dari + 400);
+        let rows = "";
+        for (let s = dari; s < hingga; s++) {
+          const r = it.senarai[s], c = p.udara && p.udara.i === i && p.udara.s === s ? " onair" : p.sedia.s === s ? " cued" : p.dipapar.has(i + ":" + s) ? " shown" : "";
+          rows += `<div class="nm${c}" data-i="${i}" data-s="${s}"><span class="i">${s + 1}.</span><span>${esc(r.nama)}</span><span class="k">${esc(r.kelas)}</span></div>`;
+        }
+        html += `<div class="names" id="names">${rows}</div>`;
+      }
+      return html;
+    }).join("");
+  }
+  // Keep the SEDIA name visible inside the names box (scroll only that box, not the dock).
+  function ikutSedia() {
+    const box = $("names"), el = box && box.querySelector(".nm.cued"); if (!el) return;
+    const b = box.getBoundingClientRect(), r = el.getBoundingClientRect();
+    if (r.top < b.top) box.scrollTop += r.top - b.top - 40; else if (r.bottom > b.bottom) box.scrollTop += r.bottom - b.bottom + 40;
+  }
+
+  // ---------- modes ----------
+  function setMod(m) {
+    if (m === "persediaan" && !p.bolehPersediaan) return toast("SOROK atau HENTI dahulu sebelum membuka Persediaan.", true);
+    mod = m;
+    $("show").style.display = m === "majlis" ? "flex" : "none";
+    $("setup").style.display = m === "persediaan" ? "flex" : "none";
+    $("mShow").classList.toggle("on", m === "majlis"); $("mSetup").classList.toggle("on", m === "persediaan");
+    if (m === "persediaan") renderSetup(); else { render(); ikutSedia(); }
+    semakBesar();
+  }
+
+  // ---------- Bilik Kawalan (large layout of this same panel, Majlis mode only) ----------
+  const bilik = KM.bilik.mount({ atas: $("bkAtas"), mon: $("bkMon"), input: $("bkInput"), audio: $("bkAudio") },
+    { obs, store, toast, ditunduk: () => ditunduk && muzikMain });
+  function semakBesar() {
+    const tetap = store.get("majlis.besar", "auto");
+    const tertanam = document.documentElement.classList.contains("tertanam");
+    const besar = !tertanam && mod === "majlis" && (tetap === "sentiasa" || (tetap === "auto" && window.innerWidth >= 1000));
+    document.body.classList.toggle("besar", besar);
+    document.body.classList.toggle("tanpa-input", !store.get("majlis.input", true));
+    bilik.aktif(besar);
+  }
+  $("besarMod").value = store.get("majlis.besar", "auto");
+  $("besarInput").checked = store.get("majlis.input", true);
+  $("besarMod").onchange = () => { store.set("majlis.besar", $("besarMod").value); semakBesar(); };
+  $("besarInput").onchange = () => { store.set("majlis.input", $("besarInput").checked); semakBesar(); };
+  window.addEventListener("resize", () => semakBesar());
+  $("mSetup").onclick = () => setMod("persediaan");
+  $("mShow").onclick = $("start").onclick = () => setMod("majlis");
+
+  // ---------- Persediaan ----------
+  const msg = (el, t, info) => { $(el).hidden = !t; $(el).textContent = t || ""; $(el).classList.toggle("info", !!info); };
+  const tanda = (id, siap, no) => { $(id).className = "c" + (siap ? "" : " todo"); $(id).textContent = siap ? "✓" : no; };
+  let sunting = null, armed = null, armT = null;
+  function renderSetup() {
+    if (mod !== "persediaan") return;
+    const bersambung = obs.state === "connected", sedia = $("kmConn").classList.contains("ok");
+    tanda("cSambung", sedia, 1);
+    $("sambungInfo").textContent = $("kmConnMsg").textContent;
+    const secs = p.aturcara.filter(x => x.jenis === "nama"), n = secs.reduce((a, x) => a + x.senarai.length, 0);
+    tanda("cSenarai", n, 2);
+    $("senaraiInfo").textContent = n ? (store.get("majlis.fail", "") || "Senarai penerima") + " · " + n + " nama dalam " + secs.length + " anugerah" : "Excel atau CSV: lajur Nama, Kelas, Anugerah";
+    $("defRow").hidden = !store.get("majlis.tiadaAnugerah", false);
+    if ($("defAward") !== document.activeElement) $("defAward").value = defAward;
+    tanda("cAturcara", p.aturcara.length, 3);
+    const lagu = p.aturcara.filter(x => x.jenis === "lagu" || x.jenis === "video");
+    $("aturcaraInfo").textContent = p.aturcara.length ? p.aturcara.length + " item" + (lagu.length ? " · " + lagu.length + " lagu/video" : "") : "Susun ikut turutan sebenar";
+    $("addLagu").disabled = $("addVideo").disabled = !bersambung;
+    $("susun").innerHTML = p.aturcara.map((it, j) => {
+      let meta = it.jenis === "nama" ? it.senarai.length + " nama" : (it.jenis === "lagu" || it.jenis === "video")
+        ? (it.fail || KM.dock.namaFail(it.laluan)) + " · tempoh " + mmss(it.tempoh) : (it.halaman || 1) + (it.jenis === "slaid" ? " halaman" : " gambar");
+      if ((it.jenis === "slaid" || it.jenis === "gambar") && KM.dek.tidakDisimpan(it.id)) meta += " · tidak disimpan";
+      const tajuk = sunting === it.id ? `<input value="${esc(it.tajuk)}" maxlength="120">` : `<b>${esc(it.tajuk)}</b>`;
+      return `<div class="su" data-id="${it.id}" data-i="${j}"><span class="n">${j + 1}.</span><span>${ICO[it.jenis]}</span>` +
+        `<span class="t">${tajuk}<span>${esc(meta)}</span></span><span class="acts">` +
+        `<button type="button" data-a="up" title="Naik" ${j === 0 ? "disabled" : ""}>↑</button>` +
+        `<button type="button" data-a="down" title="Turun" ${j === p.aturcara.length - 1 ? "disabled" : ""}>↓</button>` +
+        `<button type="button" data-a="ren" title="Nama semula">✎</button>` +
+        `<button type="button" data-a="del" title="Buang" class="${armed === it.id ? "arm" : ""}">${armed === it.id ? "Buang?" : "✕"}</button></span></div>`;
+    }).join("") || `<div class="su"><span></span><span></span><span class="t"><span>Belum ada item. Tambah senarai penerima, lagu, video, slaid atau gambar.</span></span></div>`;
+    const inp = $("susun").querySelector("input"); if (inp && document.activeElement !== inp) { inp.focus(); inp.select(); }
+    $("tandaInfo").textContent = p.dipapar.size ? p.dipapar.size + " sudah dipapar" : "";
+    tanda("cMuzik", !!muzikNama, 5);
+    $("muzikInfo").textContent = muzikNama ? muzikNama + (muzikMain ? " · sedang dimainkan" : "") : "Pilihan: muzik berulang semasa menunggu, dikecilkan sendiri bila lagu aturcara dimainkan";
+    $("pilihMuzik").textContent = muzikNama ? "Tukar fail" : "Pilih fail";
+    $("pilihMuzik").disabled = !bersambung;
+    const direka = !!store.get("gaya.layout", null);
+    tanda("cReka", direka, 6);
+    renderCanva();
+    $("rekaInfo").textContent = direka ? "Reka bentuk sendiri disimpan" : "Belum · gaya lalai akan digunakan";
+    $("rekaBtn").textContent = reka.terbuka() ? "Tutup" : "Reka";
+  }
+  obs.on("state", () => setTimeout(renderSetup, 50));
+  new MutationObserver(() => renderSetup()).observe($("kmConn"), { attributes: true, childList: true, subtree: true });
+  $("tetapanBtn").onclick = () => $("kmSetupBtn").click();
+  $("rekaBtn").onclick = () => { reka.terbuka() ? reka.tutup() : reka.buka(); renderSetup(); };
+
+  // Arrange the Aturcara.
+  function ubahAturcara(a) { gantiKeadaan(P.petaSemula(p.toJSON(), a)); renderSetup(); }
+  $("susun").onclick = e => {
+    const row = e.target.closest("[data-id]"), act = e.target.dataset.a; if (!row || !act) return;
+    const j = +row.dataset.i, a = p.aturcara.slice();
+    if (act === "up" || act === "down") {
+      const k = act === "up" ? j - 1 : j + 1; if (k < 0 || k >= a.length) return;
+      [a[j], a[k]] = [a[k], a[j]]; ubahAturcara(a);
+    } else if (act === "ren") { sunting = a[j].id; renderSetup(); }
+    else if (act === "del") {
+      // Two presses: JS dialogs are unreliable inside OBS docks.
+      if (armed !== a[j].id) { armed = a[j].id; clearTimeout(armT); armT = setTimeout(() => { armed = null; renderSetup(); }, 3000); renderSetup(); return; }
+      armed = null; clearTimeout(armT);
+      const [gone] = a.splice(j, 1);
+      if (gone.jenis === "slaid" || gone.jenis === "gambar") {
+        // Still in the v1.2 Media dock's list (the fallback panel): keep its file, forget only our cache.
+        if (store.get("media.items", []).some(x => x.id === gone.id)) KM.dek.lupa(gone.id); else KM.dek.buang(gone.id);
+      }
+      ubahAturcara(a);
+    }
+  };
+  $("susun").addEventListener("keydown", e => {
+    const inp = e.target.closest("input"); if (!inp) return;
+    if (e.key === "Escape") { sunting = null; renderSetup(); return; }
+    if (e.key !== "Enter") return;
+    const it = p.aturcara.find(x => x.id === sunting), v = KM.senarai.norm(inp.value);
+    if (it && v) { it.tajuk = v; simpan(); }
+    sunting = null; renderSetup();
+  });
+  $("susun").addEventListener("focusout", e => {
+    if (!e.target.closest("input") || !sunting) return;
+    const it = p.aturcara.find(x => x.id === sunting), v = KM.senarai.norm(e.target.value);
+    if (it && v) { it.tajuk = v; simpan(); }
+    sunting = null; setTimeout(renderSetup, 0);
+  });
+  function tambahItem(item) { ubahAturcara(p.aturcara.concat([item])); }
+
+  // Songs and videos: the file is picked in OBS's own Properties window (a web page cannot read paths).
+  async function tambahMain(jenis) {
+    msg("aturcaraMsg", "Pilih fail dalam tetingkap OBS yang terbuka (Browse), kemudian tekan OK.", true);
+    try {
+      const laluan = await KM.dock.pilihFail(obs, VIDEO_NAME);
+      if (!laluan) return msg("aturcaraMsg", "");
+      const fail = KM.dock.namaFail(laluan);
+      tambahItem({ id: "m" + Date.now().toString(36), jenis, tajuk: fail.replace(/\.[^.]+$/, ""), fail, laluan });
+      msg("aturcaraMsg", (jenis === "lagu" ? "Lagu" : "Video") + " ditambah: " + fail + ". Tekan ✎ untuk menamakannya ikut aturcara (contoh: Lagu Negaraku).", true);
+    } catch (e) { msg("aturcaraMsg", "Gagal: " + e.message); }
+  }
+  $("addLagu").onclick = () => tambahMain("lagu");
+  $("addVideo").onclick = () => tambahMain("video");
+  $("failPdf").onchange = async e => {
+    const files = [...e.target.files]; e.target.value = ""; if (!files.length) return;
+    msg("aturcaraMsg", "Membuka PDF…", true);
+    let semua = true;
+    for (const f of files) {
+      try { const { item, stored } = await KM.dek.tambahPdf(f); semua = semua && stored; tambahItem(item); }
+      catch (err) { return msg("aturcaraMsg", "Tidak dapat membuka " + f.name + ": " + err.message); }
+    }
+    msg("aturcaraMsg", semua ? "" : "Fail terlalu besar untuk disimpan: perlu ditambah semula jika OBS ditutup.");
+  };
+  $("failGambar").onchange = async e => {
+    const files = [...e.target.files]; e.target.value = ""; if (!files.length) return;
+    try { const { item, stored } = await KM.dek.tambahGambar(files); tambahItem(item); msg("aturcaraMsg", stored ? "" : "Gambar terlalu besar untuk disimpan: perlu ditambah semula jika OBS ditutup."); }
+    catch (err) { msg("aturcaraMsg", "Gagal: " + err.message); }
+  };
+  // Clear the "sudah dipapar" marks (a new rehearsal or a new event). Two presses.
+  let resetArm = null;
+  $("resetTanda").onclick = () => {
+    const b = $("resetTanda");
+    if (!resetArm) { b.textContent = "Tekan sekali lagi untuk sahkan"; resetArm = setTimeout(() => { resetArm = null; b.textContent = "Kosongkan tanda \"sudah dipapar\""; }, 3000); return; }
+    clearTimeout(resetArm); resetArm = null; b.textContent = "Kosongkan tanda \"sudah dipapar\"";
+    const st = p.toJSON(); st.dipapar = []; st.selesai = []; st.sedia = null; gantiKeadaan(st); renderSetup();
+  };
+  $("pilihMuzik").onclick = async () => {
+    try { await KM.dock.pilihFail(obs, MUZIK_NAME); } catch (e) { toast("Muzik latar: " + e.message, true); }
+    semakMuzik();
+  };
+  let rowsTerakhir = store.get("majlis.rows", null);
+  async function muatSenarai(rows) {
+    gantiKeadaan(P.gabungSenarai(p.toJSON(), rows, defAward));
+    store.set("majlis.rows", rows); rowsTerakhir = rows;
+    renderSetup();
+  }
+  $("failSenarai").onchange = async e => {
+    const f = e.target.files[0]; e.target.value = ""; if (!f) return;
+    try {
+      const { rows, note, noAward, suggest } = await KM.senarai.bacaFail(f);
+      if (!rows.length) throw new Error("Tiada nama dijumpai dalam fail.");
+      if (noAward && !defAward && suggest) { defAward = suggest; store.set("majlis.defAward", defAward); }
+      store.set("majlis.tiadaAnugerah", !!noAward); store.set("majlis.fail", f.name);
+      await muatSenarai(rows);
+      msg("senaraiMsg", note || (rows.length + " nama dibaca. Tanda \"sudah dipapar\" dikekalkan ikut nama."), !note);
+    } catch (err) { msg("senaraiMsg", "Tidak dapat membaca fail: " + err.message); }
+  };
+  $("defAward").addEventListener("change", () => {
+    defAward = KM.senarai.norm($("defAward").value); store.set("majlis.defAward", defAward);
+    if (rowsTerakhir) muatSenarai(rowsTerakhir);
+  });
+
+  // Test hook (ujian/uji-majlis.cjs): add an item without the OBS file dialog.
+  window.__majlis = {
+    p: () => p,
+    sedia(pos) { sediakan(pos); },
+    tambah(item, at) {
+      item = Object.assign({ id: "t" + Date.now().toString(36) + Math.random().toString(36).slice(2, 5) }, item);
+      const a = p.aturcara.slice(); a.splice(at == null ? a.length : at, 0, item);
+      gantiKeadaan(P.petaSemula(p.toJSON(), a));
+      return p.aturcara.indexOf(item);
+    },
+  };
+
+  render(); ikutSedia(); semakBesar();
+})();
+</script>
+</body>
+</html>

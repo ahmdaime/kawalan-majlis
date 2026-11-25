@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="ms">
+<head>
+<meta charset="utf-8">
+<title>Kawalan Majlis: Paparan</title>
+<style>
+  html,body{margin:0;width:1920px;height:1080px;overflow:hidden;background:transparent}
+  body{font-family:Montserrat,Arial,sans-serif;position:relative}
+
+  /* Media layer (PDF page / picture) */
+  #media{position:absolute;inset:0;background:#000;opacity:0;transition:opacity .4s ease}
+  #media.show{opacity:1}
+  #media img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;opacity:0;transition:opacity .3s ease}
+  #media img.on{opacity:1}
+
+  /* Name layer: layout comes from the Anugerah dock (lib/gaya.js) */
+  #nameWrap{position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity .45s ease}
+  #nameWrap.show{opacity:1}
+  #stage{position:absolute;left:0;top:0;width:1920px;height:1080px;transform:translateY(24px);transition:transform .45s cubic-bezier(.2,.8,.2,1)}
+  #nameWrap.show #stage{transform:none}
+</style>
+</head>
+<body>
+<div id="media"><img id="imgA" alt=""><img id="imgB" alt=""></div>
+<div id="nameWrap"><div id="stage"></div></div>
+
+<script src="lib/obs.js"></script>
+<script src="lib/gaya.js"></script>
+<script>
+(function () {
+  const q = new URLSearchParams(location.search);
+  const obs = new KM.OBSClient();
+  const $ = id => document.getElementById(id);
+
+  // ---- name ----
+  const G = KM.gaya;
+  let layout = G.defaults(), assets = {}, asked = new Set();
+  let nameShown = false, nameKey = "", nameData = {};
+  const draw = () => G.render($("stage"), layout, nameData, assets);
+  function setName(d) { nameData = { anugerah: d.anugerah || "", nama: d.nama || "", kelas: d.kelas || "" }; draw(); }
+  function applyName(d) {
+    const key = [d.nama, d.kelas, d.anugerah].join("|");
+    if (d.show && nameShown && key !== nameKey) {
+      // Swap text while hidden so the change is never seen mid-fade.
+      $("nameWrap").classList.remove("show");
+      setTimeout(() => { setName(d); $("nameWrap").classList.add("show"); }, 380);
+    } else {
+      if (d.show) setName(d);
+      $("nameWrap").classList.toggle("show", !!d.show);
+    }
+    nameShown = !!d.show; nameKey = key;
+  }
+  // Layout from the dock; pictures and teacher fonts arrive separately (asked for once each).
+  function applyGaya(d) {
+    layout = G.normalize(d.layout);
+    for (const id of G.assetIds(layout)) {
+      if (assets[id] || asked.has(id)) continue;
+      asked.add(id); obs.broadcast({ type: "minta-aset", id }).catch(() => {});
+    }
+    draw();
+  }
+  async function applyAset(d) {
+    asked.delete(d.id);
+    if (d.kind === "font") { try { await G.registerFont(d.id, d.data); } catch (e) { console.warn("font", e); } }
+    assets[d.id] = d.data; draw();
+  }
+
+  // ---- media ----
+  let front = $("imgA"), back = $("imgB"), mediaKey = "";
+  function applyMedia(d) {
+    if (d.show && d.src && d.key !== mediaKey) {
+      back.onload = () => { back.classList.add("on"); front.classList.remove("on"); [front, back] = [back, front]; };
+      back.src = d.src; mediaKey = d.key;
+    }
+    $("media").classList.toggle("show", !!d.show);
+  }
+
+  obs.on("custom", d => {
+    if (!d || d.app !== "kawalan-majlis") return;
+    if (d.type === "nama") applyName(d);
+    else if (d.type === "gaya") applyGaya(d);
+    else if (d.type === "aset") applyAset(d);
+    else if (d.type === "media") applyMedia(d);
+    else if (d.type === "semak-paparan") obs.broadcast({ type: "paparan-ada" }).catch(() => {});
+  });
+  obs.on("state", s => {
+    console.log("[paparan] " + s.state);
+    // Ask the docks to resend what should be on screen (overlay reloaded / OBS restarted).
+    if (s.state === "connected") { asked.clear(); obs.broadcast({ type: "paparan-sedia" }).catch(() => {}); }
+  });
+  obs.connect({ port: +(q.get("port") || 4455), password: q.get("pw") || "", retry: true });
+})();
+</script>
+</body>
+</html>

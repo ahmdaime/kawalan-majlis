@@ -1,0 +1,343 @@
+<!doctype html>
+<html lang="ms">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mockup Bilik Kawalan</title>
+<style>
+  :root{
+    --bg:#111216; --panel:#1b1d23; --panel2:#23262d; --line:#30333c; --text:#eceef2; --mute:#9aa0ad; --dim:#666c7a;
+    --live:#e5484d; --live-bg:#3a1517; --cue:#f5a524; --cue-bg:#3a2a0c; --ok:#3fb27f; --prev:#f08a24;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:#0b0c0f;color:var(--text);font:13px/1.4 "Segoe UI",system-ui,-apple-system,sans-serif}
+  button{font:inherit;color:inherit;cursor:pointer}
+  .app{max-width:1480px;margin:0 auto;padding:10px;display:grid;gap:10px}
+
+  /* top bar */
+  .top{display:flex;align-items:center;gap:10px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:8px 12px;flex-wrap:wrap}
+  .brand{font-weight:800;letter-spacing:.02em}
+  .brand span{color:var(--mute);font-weight:600}
+  .conn{display:flex;align-items:center;gap:6px;color:var(--mute);font-size:12px}
+  .dot{width:8px;height:8px;border-radius:50%;background:var(--ok)}
+  .sp{flex:1}
+  .clock{font-variant-numeric:tabular-nums;font-weight:700;font-size:15px}
+  .count{font-variant-numeric:tabular-nums;font-size:12px;padding:3px 8px;border-radius:6px;background:#2a2412;color:#ffcf7a}
+  .stat{font-size:12px;color:var(--mute);font-variant-numeric:tabular-nums}
+  .stat b{color:var(--ok)}
+  .out{border:1px solid var(--line);background:var(--panel2);border-radius:7px;padding:6px 12px;font-weight:800;display:flex;gap:7px;align-items:center}
+  .out i{width:9px;height:9px;border-radius:50%;background:var(--dim);display:inline-block}
+  .out.on{background:var(--live);border-color:var(--live)} .out.on i{background:#fff;animation:p 1.2s infinite}
+  .out small{font-weight:600;opacity:.85;font-variant-numeric:tabular-nums}
+  .mode{display:flex;gap:4px}
+  .mode button{border:1px solid var(--line);background:var(--panel2);border-radius:6px;padding:5px 10px;font-weight:600;font-size:12px}
+  .mode button.on{background:var(--text);color:var(--bg)}
+  @keyframes p{50%{opacity:.25}}
+
+  /* monitors */
+  .mon{display:grid;grid-template-columns:1fr 150px 1fr;gap:10px}
+  .scr{background:var(--panel);border-radius:10px;overflow:hidden;border:2px solid var(--line)}
+  .scr .bar{display:flex;justify-content:space-between;padding:5px 10px;font-weight:800;font-size:11.5px;letter-spacing:.08em;text-transform:uppercase}
+  .scr.pv{border-color:var(--prev)} .scr.pv .bar{background:var(--prev);color:#2a1300}
+  .scr.pg{border-color:var(--live)} .scr.pg .bar{background:var(--live);color:#fff}
+  .vid{position:relative;aspect-ratio:16/9;overflow:hidden;background:#000}
+  .shot{position:absolute;inset:0;transition:opacity .5s}
+  .shot .tag{position:absolute;left:10px;top:8px;font-size:11px;font-weight:700;background:#0008;padding:2px 7px;border-radius:4px}
+  .lt{position:absolute;left:50%;bottom:7%;transform:translateX(-50%) translateY(10px);text-align:center;opacity:0;transition:.35s;width:86%}
+  .lt.on{opacity:1;transform:translateX(-50%)}
+  .lt .a{font-size:clamp(9px,1vw,13px);color:#ffd27a;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+  .lt .n{font-size:clamp(14px,1.9vw,26px);font-weight:900;text-shadow:0 2px 8px #000}
+  .lt .k{font-size:clamp(9px,1vw,13px);color:#ddd}
+  .lt::before{content:"";position:absolute;inset:-30% -10% -40%;background:linear-gradient(transparent,#000c);z-index:-1}
+  .blk{position:absolute;inset:0;background:#000;opacity:0;transition:opacity .6s;pointer-events:none;display:flex;align-items:center;justify-content:center;color:#666;font-weight:800;letter-spacing:.1em}
+  .blk.on{opacity:1}
+
+  .tr{display:flex;flex-direction:column;gap:7px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:9px}
+  .tr .h{font-size:10.5px;color:var(--mute);font-weight:800;letter-spacing:.08em;text-align:center}
+  .tb{border:0;border-radius:8px;padding:10px 6px;font-weight:900;font-size:15px;background:var(--panel2);border:1px solid var(--line)}
+  .tb.cut{background:#e9ecf1;color:#111}
+  .tb.fade{background:#3b5bdb;border-color:#3b5bdb}
+  .tb.ftb.on{background:var(--live);border-color:var(--live)}
+  .tbar{flex:1 1 0;display:flex;justify-content:center;min-height:50px;padding:4px 0}
+  .tbar input{writing-mode:vertical-lr;direction:rtl;width:30px;height:100%;accent-color:#3b5bdb}
+  .dur{display:flex;gap:4px;align-items:center;justify-content:center;font-size:11px;color:var(--mute)}
+  .dur select{background:var(--panel2);border:1px solid var(--line);color:var(--text);border-radius:5px;padding:2px}
+
+  /* input bar */
+  .inputs{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:8px 10px}
+  .ihead{display:flex;justify-content:space-between;color:var(--mute);font-size:11.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;margin-bottom:7px}
+  .ihead span:last-child{text-transform:none;letter-spacing:0;font-weight:500}
+  .row{display:grid;grid-template-columns:repeat(8,1fr);gap:8px}
+  .tile{background:var(--panel2);border:2px solid var(--line);border-radius:8px;overflow:hidden;cursor:pointer;user-select:none}
+  .tile.is-pv{border-color:var(--prev)} .tile.is-pg{border-color:var(--live)}
+  .tile .th{position:relative;aspect-ratio:16/9}
+  .tile .no{position:absolute;left:5px;top:4px;font-size:11px;font-weight:800;background:#000a;border-radius:3px;padding:0 5px}
+  .tile .st{position:absolute;right:5px;top:4px;font-size:9.5px;font-weight:800;border-radius:3px;padding:1px 5px}
+  .tile.is-pv .st{background:var(--prev);color:#2a1300} .tile.is-pg .st{background:var(--live)}
+  .tile .nm{display:flex;justify-content:space-between;align-items:center;padding:4px 7px;font-size:12px;font-weight:600;gap:4px}
+  .tile .nm span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .tile .nm em{font-style:normal;color:var(--mute);font-size:11px}
+
+  /* lower row */
+  .low{display:grid;grid-template-columns:1.25fr .9fr .95fr;gap:10px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:9px 10px;display:flex;flex-direction:column;gap:8px;min-width:0}
+  .ch{display:flex;justify-content:space-between;align-items:center;color:var(--mute);font-size:11.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase}
+  .ch .pill{font-size:10.5px;letter-spacing:.03em;border-radius:20px;padding:2px 8px;background:var(--panel2);color:var(--mute);text-transform:none}
+
+  .pp{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .box{border-radius:9px;padding:8px 10px;min-width:0}
+  .lbl{font-size:10.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;display:flex;gap:6px;align-items:center}
+  .air{background:var(--live-bg);border:2px solid var(--live)} .air .lbl{color:#ff9a9d}
+  .air.clean{background:var(--panel2);border:2px dashed var(--line)} .air.clean .lbl{color:var(--dim)}
+  .pulse{width:9px;height:9px;border-radius:50%;background:var(--live);animation:p 1.2s infinite}
+  .air.clean .pulse{background:var(--dim);animation:none}
+  .am{font-size:15px;font-weight:800;margin-top:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .as{font-size:12px;color:var(--mute)}
+  .hide{margin-top:7px;width:100%;border:0;border-radius:7px;padding:8px;font-weight:800;background:var(--live)}
+  .hide:disabled{background:var(--panel);color:var(--dim);cursor:default}
+  .cue{background:var(--cue-bg);border:2px solid var(--cue)} .cue .lbl{color:var(--cue)}
+  .giliran{display:flex;align-items:baseline;gap:7px;margin-top:3px}
+  .gno{font-size:28px;font-weight:900;color:var(--cue);line-height:1;font-variant-numeric:tabular-nums}
+  .gof{font-size:12px;color:var(--mute)}
+  .cn{font-size:17px;font-weight:900;line-height:1.15;margin-top:3px}
+  .ck{font-size:12.5px;color:#e9d6b0}
+  .go{margin-top:8px;width:100%;border:0;border-radius:8px;padding:11px;font-weight:900;font-size:16px;background:var(--cue);color:#231700}
+  .nav{display:flex;gap:6px;margin-top:6px}
+  .nav button{flex:1;border:1px solid var(--line);background:var(--panel2);border-radius:7px;padding:7px;font-weight:700}
+  .after{font-size:12px;color:var(--mute);display:flex;gap:6px}
+  .after b{color:var(--text);font-weight:600}
+
+  .run{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+  .it{display:flex;gap:8px;align-items:center;padding:7px 9px;border-top:1px solid var(--line);font-size:12.5px}
+  .it:first-child{border-top:0}
+  .it .ic{width:18px;text-align:center}
+  .it .t{flex:1;min-width:0} .it .t b{display:block;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis} .it .t span{color:var(--mute);font-size:11.5px}
+  .it.done{opacity:.45} .it.done b{text-decoration:line-through}
+  .it.cued{background:var(--cue-bg);box-shadow:inset 3px 0 var(--cue)}
+  .it.onair{background:var(--live-bg);box-shadow:inset 3px 0 var(--live)}
+  .prog{width:54px;height:5px;background:var(--panel2);border-radius:3px;overflow:hidden} .prog i{display:block;height:100%;background:var(--ok)}
+
+  .mix{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;flex:1}
+  .ch2{display:flex;flex-direction:column;align-items:center;gap:6px;background:var(--panel2);border-radius:8px;padding:8px 4px;min-width:0}
+  .ch2 .n{font-size:11px;font-weight:700;text-align:center;line-height:1.2;min-height:27px}
+  .fad{display:flex;gap:5px;align-items:stretch;height:120px}
+  .meter{width:7px;background:#0007;border-radius:3px;position:relative;overflow:hidden}
+  .meter i{position:absolute;left:0;right:0;bottom:0;background:linear-gradient(0deg,var(--ok) 0 65%,#e7c94b 65% 85%,var(--live) 85%);transition:height .08s linear}
+  .fad input{writing-mode:vertical-lr;direction:rtl;width:22px;accent-color:var(--text)}
+  .db{font-size:10.5px;color:var(--mute);font-variant-numeric:tabular-nums}
+  .mbtn{display:flex;gap:3px}
+  .mbtn button{border:1px solid var(--line);background:var(--panel);border-radius:4px;font-size:10.5px;font-weight:800;padding:2px 6px}
+  .mbtn button.m.on{background:var(--live);border-color:var(--live)}
+  .mbtn button.s.on{background:#e7c94b;color:#222;border-color:#e7c94b}
+  .duck{font-size:9.5px;font-weight:800;border-radius:3px;padding:1px 5px;background:#2b3a6b;color:#bcd0ff;visibility:hidden}
+  .duck.on{visibility:visible}
+  .ch2.master{background:#2a2c33}
+
+  .hint{color:var(--dim);font-size:11.5px;padding:0 4px}
+  .hint b{color:var(--mute)} kbd{background:var(--panel2);border:1px solid var(--line);border-radius:3px;padding:0 5px;font-size:10.5px}
+  .notes{max-width:1480px;margin:6px auto 40px;padding:0 10px;color:var(--mute);font-size:13px;display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  .notes h3{color:var(--text);font-size:13.5px;margin:0 0 4px}
+  .notes ul{margin:0;padding-left:18px} .notes li{margin:3px 0}
+  .toast{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);background:var(--panel2);border:1px solid var(--line);padding:9px 16px;border-radius:8px;font-weight:700;opacity:0;transition:.25s;pointer-events:none}
+  .toast.show{opacity:1}
+
+  @media (max-width:1100px){
+    .mon{grid-template-columns:1fr 1fr} .tr{grid-column:1/-1;flex-direction:row;flex-wrap:wrap;align-items:center} .tr .tb{flex:1}
+    .tbar{min-height:0;flex:2} .tbar input{writing-mode:horizontal-tb;direction:ltr;width:100%}
+    .row{grid-template-columns:repeat(4,1fr)} .low{grid-template-columns:1fr} .notes{grid-template-columns:1fr}
+  }
+  @media (max-width:640px){ .mon{grid-template-columns:1fr} .pp{grid-template-columns:1fr} .mix{grid-template-columns:repeat(3,1fr)} }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="top">
+    <div class="brand">Kawalan Majlis <span>· Bilik Kawalan</span></div>
+    <div class="conn"><span class="dot"></span>OBS bersambung</div>
+    <div class="sp"></div>
+    <div class="clock" id="clock">20:14:05</div>
+    <div class="count" title="Kiraan masa ke slot seterusnya dalam aturcara">Sesi anugerah · baki 00:42:10</div>
+    <div class="stat">Bingkai tercicir: <b id="drop">0</b> · CPU 18%</div>
+    <button class="out" id="rec"><i></i>REC <small id="recT"></small></button>
+    <button class="out on" id="live"><i></i>LIVE <small id="liveT">01:12:30</small></button>
+    <div class="mode"><button>✎ Persediaan</button><button class="on">▶ Majlis</button></div>
+  </div>
+
+  <div class="mon">
+    <div class="scr pv"><div class="bar"><span>Preview · belum keluar</span><span id="pvName">2 · Kamera Pentas</span></div>
+      <div class="vid" id="pvVid"></div></div>
+    <div class="tr">
+      <div class="h">PERALIHAN</div>
+      <button class="tb cut" id="cut">CUT</button>
+      <button class="tb fade" id="fade">FADE</button>
+      <div class="tbar"><input type="range" id="tbar" min="0" max="100" value="0" title="T-bar: tarik untuk peralihan manual"></div>
+      <div class="dur">Tempoh <select><option>0.5 s</option><option>1 s</option><option>2 s</option></select></div>
+      <button class="tb ftb" id="ftb" title="Fade to black: skrin hitam ke penonton">FTB</button>
+    </div>
+    <div class="scr pg"><div class="bar"><span>Program · ke udara</span><span id="pgName">1 · Kamera Dewan</span></div>
+      <div class="vid" id="pgVid">
+        <div class="lt" id="lt"><div class="a">Anugerah Cemerlang UASA</div><div class="n" id="ltN">NUR AISYAH BINTI AHMAD</div><div class="k" id="ltK">6 Bestari</div></div>
+        <div class="blk" id="ftbLayer">SKRIN HITAM</div>
+      </div></div>
+  </div>
+
+  <div class="inputs">
+    <div class="ihead"><span>Input</span><span>Klik = ke Preview · Klik dua kali = terus ke Program · Nombor <kbd>1</kbd>–<kbd>8</kbd></span></div>
+    <div class="row" id="row"></div>
+  </div>
+
+  <div class="low">
+    <div class="card">
+      <div class="ch"><span>Panel Pengarah · overlay di atas Program</span><span class="pill">Nama penerima</span></div>
+      <div class="pp">
+        <div class="box air clean" id="air"><div class="lbl"><span class="pulse"></span><span id="airL">Skrin bersih</span></div>
+          <div class="am" id="airM">—</div><div class="as" id="airS">Tiada nama ke udara</div>
+          <button class="hide" id="hide" disabled>SOROK <small>Esc</small></button></div>
+        <div class="box cue"><div class="lbl">Sedia · belum keluar</div>
+          <div class="giliran"><span class="gno" id="gno">46</span><span class="gof">daripada 120</span></div>
+          <div class="cn" id="cn">MUHAMMAD HAFIZ BIN ROSLI</div><div class="ck" id="ck">6 Cerdik</div>
+          <button class="go" id="go">PAPAR <small>Space</small></button>
+          <div class="nav"><button id="prev">◀ Sebelum</button><button id="next">Seterusnya ▶</button></div></div>
+      </div>
+      <div class="after">Selepas ini: <b id="aft">#47 SITI NUR HUDA BINTI KAMAL</b></div>
+    </div>
+
+    <div class="card">
+      <div class="ch"><span>Aturcara</span><span class="pill">4 / 8 selesai</span></div>
+      <div class="run">
+        <div class="it done"><span class="ic">🎬</span><div class="t"><b>Video pembukaan</b><span>01-pembukaan.mp4 · 2:10</span></div></div>
+        <div class="it done"><span class="ic">♪</span><div class="t"><b>Lagu Negaraku</b><span>negaraku.mp3 · 1:32</span></div></div>
+        <div class="it done"><span class="ic">▤</span><div class="t"><b>Slaid ucapan Guru Besar</b><span>12 halaman</span></div></div>
+        <div class="it cued"><span class="ic">🏅</span><div class="t"><b>Anugerah Cemerlang UASA</b><span>45 / 120 nama dipapar</span></div><div class="prog"><i style="width:37%"></i></div></div>
+        <div class="it"><span class="ic">♪</span><div class="t"><b>Persembahan koir</b><span>koir.mp3 · 3:05</span></div></div>
+        <div class="it"><span class="ic">🏅</span><div class="t"><b>Tokoh Murid</b><span>0 / 6 nama dipapar</span></div><div class="prog"><i style="width:0"></i></div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="ch"><span>Audio</span><span class="pill">Klik input tidak membisukan mik</span></div>
+      <div class="mix" id="mix"></div>
+    </div>
+  </div>
+  <div class="hint"><b>Kekunci:</b> <kbd>1</kbd>–<kbd>8</kbd> input ke Preview · <kbd>Enter</kbd> CUT · <kbd>F</kbd> FADE · <kbd>Space</kbd> butang kuning · <kbd>Esc</kbd> SOROK · <kbd>→</kbd> Seterusnya. Video penuh tetap dalam OBS dan Multiview; gambar di sini dikemas kini beberapa kali sesaat.</div>
+</div>
+
+<div class="notes">
+  <div><h3>Diambil dari cara kerja vMix</h3><ul>
+    <li>Preview (oren) di kiri, Program (merah) di kanan, peralihan di tengah.</li>
+    <li>Deretan input bernombor dengan gambar kecil. Sempadan oren = Preview, merah = Program.</li>
+    <li>T-bar, FTB, jam dan status REC / LIVE di atas.</li>
+  </ul></div>
+  <div><h3>Lebih baik untuk majlis sekolah</h3><ul>
+    <li>Nama penerima ialah overlay dengan nombor giliran dan kunci lagu (Panel Pengarah).</li>
+    <li>Muzik latar dikecilkan sendiri bila lagu aturcara dimainkan (ducking). vMix tiada ini.</li>
+    <li>Klik input tidak sekali-kali membisukan mikrofon.</li>
+    <li>Kiraan bingkai tercicir sentiasa nampak semasa live.</li>
+  </ul></div>
+  <div><h3>Cara ia berfungsi</h3><ul>
+    <li>OBS kekal sebagai enjin: siaran, rakaman, kad tangkap.</li>
+    <li>Tetingkap ini satu panel OBS yang ditarik keluar dan dibesarkan, atau dibuka di skrin kedua.</li>
+    <li>Sekolah yang guna switcher boleh sembunyikan deretan input.</li>
+  </ul></div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const $ = id => document.getElementById(id);
+// Fake camera pictures drawn with gradients (a mockup: no real video).
+const SHOTS = [
+  { n: "Kamera Dewan", bg: "radial-gradient(ellipse at 50% 30%,#d9cfb9 0 18%,transparent 19%),linear-gradient(180deg,#6d7f96 0 38%,#2f6e73 38% 70%,#1c4b50 70%)" },
+  { n: "Kamera Pentas", bg: "radial-gradient(circle at 50% 46%,#e8c9a3 0 7%,transparent 7.5%),linear-gradient(180deg,#f2e3a8 0 22%,#d7b75a 22% 60%,#7a4e2a 60%)" },
+  { n: "Kamera Tetamu", bg: "repeating-linear-gradient(90deg,#3a4f6e 0 9%,#d4d8e0 9% 11%),linear-gradient(#000,#000)" },
+  { n: "Slaid", bg: "linear-gradient(135deg,#ffffff 0 60%,#1f6f4a 60%)" },
+  { n: "Video", bg: "conic-gradient(from 200deg at 60% 40%,#5b2b7a,#c23a6b,#f08a24,#5b2b7a)" },
+  { n: "Logo sekolah", bg: "radial-gradient(circle,#f5a524 0 14%,#1b2e5a 15%)" },
+  { n: "Skrin hitam", bg: "#000" },
+  { n: "Laptop", bg: "linear-gradient(180deg,#1e2b4a 0 12%,#e9ecf1 12%)" },
+];
+let pv = 1, pg = 0, ftb = false;
+function shot(i) { return `<div class="shot" style="background:${SHOTS[i].bg}"><span class="tag">${i + 1} · ${SHOTS[i].n}</span></div>`; }
+function render() {
+  $("pvVid").querySelectorAll(".shot").forEach(e => e.remove());
+  $("pvVid").insertAdjacentHTML("afterbegin", shot(pv));
+  $("pvName").textContent = (pv + 1) + " · " + SHOTS[pv].n;
+  $("pgName").textContent = (pg + 1) + " · " + SHOTS[pg].n;
+  $("row").innerHTML = SHOTS.map((s, i) => `<div class="tile ${i === pg ? "is-pg" : i === pv ? "is-pv" : ""}" data-i="${i}">
+    <div class="th" style="background:${s.bg}"><span class="no">${i + 1}</span>${i === pg ? '<span class="st">PROGRAM</span>' : i === pv ? '<span class="st">PREVIEW</span>' : ""}</div>
+    <div class="nm"><span>${s.n}</span><em>${i < 3 ? "🎤" : i === 4 ? "🔊" : ""}</em></div></div>`).join("");
+}
+function setProgram(i, fade) {
+  const old = $("pgVid").querySelector(".shot");
+  $("pgVid").insertAdjacentHTML("afterbegin", shot(i));
+  const nw = $("pgVid").querySelector(".shot");
+  if (old) { if (fade) { old.style.zIndex = 1; requestAnimationFrame(() => old.style.opacity = 0); setTimeout(() => old.remove(), 520); } else old.remove(); }
+  [pv, pg] = [pg, i]; render();
+}
+$("pgVid").insertAdjacentHTML("afterbegin", shot(pg));
+$("row").onclick = e => { const t = e.target.closest("[data-i]"); if (!t) return; const i = +t.dataset.i; if (i === pg) return; pv = i; render(); };
+$("row").ondblclick = e => { const t = e.target.closest("[data-i]"); if (!t) return; pv = +t.dataset.i; setProgram(pv, false); };
+$("cut").onclick = () => setProgram(pv, false);
+$("fade").onclick = () => setProgram(pv, true);
+$("tbar").oninput = e => { const o = $("pgVid").querySelector(".shot"); if (o) o.style.opacity = 1 - e.target.value / 100; };
+$("tbar").onchange = e => { if (+e.target.value > 50) setProgram(pv, true); else { const o = $("pgVid").querySelector(".shot"); if (o) o.style.opacity = 1; } e.target.value = 0; };
+$("ftb").onclick = () => { ftb = !ftb; $("ftb").classList.toggle("on", ftb); $("ftbLayer").classList.toggle("on", ftb); };
+
+// Panel Pengarah (overlay)
+const nama = ["NUR AISYAH BINTI AHMAD", "MUHAMMAD HAFIZ BIN ROSLI", "SITI NUR HUDA BINTI KAMAL", "AHMAD DANIAL BIN ISMAIL", "NUR IRDINA BINTI ZAINAL"];
+const kelas = ["6 Bestari", "6 Cerdik", "5 Dinamik"];
+let cue = 45, air = null;
+const P = i => ({ n: nama[i % nama.length], k: kelas[i % kelas.length] });
+function renderPP() {
+  const c = P(cue);
+  $("gno").textContent = cue + 1; $("cn").textContent = c.n; $("ck").textContent = c.k;
+  $("aft").textContent = "#" + (cue + 2) + " " + P(cue + 1).n;
+  if (air === null) { $("air").className = "box air clean"; $("airL").textContent = "Skrin bersih"; $("airM").textContent = "—"; $("airS").textContent = "Tiada nama ke udara"; $("hide").disabled = true; $("lt").classList.remove("on"); }
+  else { const a = P(air); $("air").className = "box air"; $("airL").textContent = "Ke udara sekarang"; $("airM").textContent = "#" + (air + 1) + "  " + a.n; $("airS").textContent = a.k + " · Anugerah Cemerlang UASA"; $("hide").disabled = false; $("ltN").textContent = a.n; $("ltK").textContent = a.k; $("lt").classList.add("on"); }
+}
+function papar() { air = cue; cue++; renderPP(); }
+function sorok() { air = null; renderPP(); }
+$("go").onclick = papar; $("hide").onclick = sorok;
+$("next").onclick = () => { if (air !== null) sorok(); else { cue++; renderPP(); } };
+$("prev").onclick = () => { if (cue > 0) cue--; renderPP(); };
+
+// Audio mixer with moving meters
+const CH = [{ n: "Mik pengacara", v: 80 }, { n: "Mik rostrum", v: 72 }, { n: "Lagu / video", v: 85 }, { n: "Muzik latar", v: 60, duck: true }, { n: "MASTER", v: 90, m: true }];
+$("mix").innerHTML = CH.map((c, i) => `<div class="ch2 ${c.m ? "master" : ""}"><div class="n">${c.n}</div>
+  <span class="duck ${c.duck ? "" : ""}" id="duck${i}">DIKECILKAN</span>
+  <div class="fad"><div class="meter"><i id="m${i}"></i></div><input type="range" min="0" max="100" value="${c.v}"><div class="meter"><i id="mm${i}"></i></div></div>
+  <div class="db" id="db${i}">-6 dB</div>
+  <div class="mbtn"><button class="m" title="Bisu">M</button>${c.m ? "" : '<button class="s" title="Dengar di fon kepala sahaja">S</button>'}</div></div>`).join("");
+$("mix").onclick = e => { const b = e.target.closest("button"); if (b) b.classList.toggle("on"); };
+setInterval(() => CH.forEach((c, i) => {
+  const muted = $("mix").children[i].querySelector(".m").classList.contains("on");
+  const base = muted ? 0 : (i === 2 ? 0 : i === 3 ? 18 : i === 4 ? 55 : 45) + Math.random() * 30;
+  $("m" + i).style.height = base + "%"; $("mm" + i).style.height = Math.max(0, base - 6 + Math.random() * 8) + "%";
+}), 90);
+// Muzik latar is ducked in this snapshot to show the badge.
+$("duck3").classList.add("on");
+
+// Clock, REC/LIVE timers
+let rec = 0, recOn = false, live = 4350;
+const hms = s => [Math.floor(s / 3600), Math.floor(s / 60) % 60, s % 60].map(x => String(x).padStart(2, "0")).join(":");
+setInterval(() => {
+  const d = new Date(); $("clock").textContent = d.toTimeString().slice(0, 8);
+  live++; $("liveT").textContent = hms(live);
+  if (recOn) { rec++; $("recT").textContent = hms(rec); }
+}, 1000);
+$("rec").onclick = () => { recOn = !recOn; $("rec").classList.toggle("on", recOn); if (!recOn) { rec = 0; $("recT").textContent = ""; } };
+$("live").onclick = () => toast("Untuk berhenti siaran: tekan dan tahan 2 saat (elak tersilap)");
+function toast(t) { const e = $("toast"); e.textContent = t; e.classList.add("show"); setTimeout(() => e.classList.remove("show"), 2200); }
+
+document.addEventListener("keydown", e => {
+  if (e.target.tagName === "INPUT" || e.target.tagName === "SELECT") return;
+  if (/^[1-8]$/.test(e.key)) { const i = +e.key - 1; if (i !== pg) { pv = i; render(); } }
+  else if (e.key === "Enter") setProgram(pv, false);
+  else if (e.key === "f" || e.key === "F") setProgram(pv, true);
+  else if (e.key === " ") { e.preventDefault(); papar(); }
+  else if (e.key === "Escape") sorok();
+  else if (e.key === "ArrowRight") $("next").click();
+});
+render(); renderPP();
+</script>
+</body>
+</html>

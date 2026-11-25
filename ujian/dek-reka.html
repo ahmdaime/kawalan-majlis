@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="ms">
+<head>
+<meta charset="utf-8">
+<title>Ujian dek + reka (tidak dihantar)</title>
+<link rel="stylesheet" href="../lib/dock.css">
+</head>
+<body>
+<div id="reka"></div>
+<script src="../lib/obs.js"></script>
+<script src="../lib/dock.js"></script>
+<script src="../lib/idb.js"></script>
+<script src="../lib/gaya.js"></script>
+<script src="../lib/pdf.min.js"></script>
+<script src="../lib/pdf.worker.min.js"></script>
+<script src="../lib/dek.js"></script>
+<script src="../lib/reka.js"></script>
+<script>
+  // A fake OBS client: records broadcasts, never connects.
+  window.siaran = [];
+  const obs = { on() {}, off() {}, state: "idle", broadcast(d) { siaran.push(d); return Promise.resolve(); } };
+  window.editor = KM.reka.mount(document.getElementById("reka"), { obs, store: KM.dock.store, contoh: () => ({ anugerah: "Anugerah Ujian", nama: "Nama Ujian", kelas: "6 Ujian" }) });
+</script>
+</body>
+</html>

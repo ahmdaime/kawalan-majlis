@@ -1,0 +1,13 @@
+Font dalam folder ini dilesenkan di bawah SIL Open Font License 1.1
+(https://openfontlicense.org). Boleh digunakan dan diedarkan bersama
+perisian secara percuma; tidak boleh dijual secara berasingan.
+
+Montserrat (c) The Montserrat Project Authors
+Poppins (c) Indian Type Foundry
+Cinzel (c) Natanael Gama
+Playfair Display (c) Claus Eggers Sorensen
+Great Vibes (c) TypeSETit
+Oswald (c) Vernon Adams, Kalapi Gajjar, Cyreal
+Bebas Neue (c) Dharma Type
+
+Sumber fail: Google Fonts melalui pakej @fontsource 5.3.0 (subset Latin).

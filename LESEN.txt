@@ -1,0 +1,22 @@
+KAWALAN MAJLIS
+Hak cipta (c) 2026 Cikgu Aime dan penyumbang Kawalan Majlis.
+
+Perisian ini ialah perisian bebas: anda boleh mengedar semula dan/atau
+mengubahnya di bawah terma GNU General Public License seperti yang
+diterbitkan oleh Free Software Foundation, sama ada versi 2 Lesen itu,
+atau (mengikut pilihan anda) mana-mana versi kemudian
+(GPL-2.0-or-later). Teks penuh lesen: fail COPYING.
+
+Ringkasnya: anda bebas menggunakan, menyalin, mengubah dan berkongsi.
+Jika anda mengedarkan versi yang diubah, kod sumbernya mesti turut
+dikongsi di bawah lesen yang sama.
+
+TANPA JAMINAN
+Perisian ini diberi "seadanya", tanpa sebarang jaminan. Sila uji sebelum
+majlis. Lihat COPYING untuk butiran.
+
+Komponen pihak ketiga kekal di bawah lesen masing-masing:
+- lib/pdf.min.js, lib/pdf.worker.min.js: pdf.js (Apache License 2.0)
+- lib/xlsx.full.min.js: SheetJS Community Edition (Apache License 2.0)
+- fonts/: Montserrat, Poppins, Cinzel, Playfair Display, Great Vibes,
+  Oswald, Bebas Neue (SIL Open Font License 1.1, lihat fonts/LESEN-FON.txt)

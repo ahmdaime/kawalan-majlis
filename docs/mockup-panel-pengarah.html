@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="ms">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mockup Panel Pengarah</title>
+<style>
+  :root{
+    --bg:#15161a; --panel:#1d1f25; --panel2:#24272e; --line:#32353e; --text:#eceef2; --mute:#9aa0ad; --dim:#6b7180;
+    --live:#e5484d; --live-bg:#3a1517; --cue:#f5a524; --cue-bg:#3a2a0c; --ok:#3fb27f;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:#0e0f12;color:var(--text);font:14px/1.45 "Segoe UI",system-ui,-apple-system,sans-serif}
+  .wrap{display:flex;gap:28px;justify-content:center;align-items:flex-start;padding:24px 16px 60px;flex-wrap:wrap}
+  .notes{max-width:360px;color:var(--mute);font-size:13.5px}
+  .notes h1{color:var(--text);font-size:20px;margin:0 0 4px}
+  .notes h2{color:var(--text);font-size:14px;margin:18px 0 6px}
+  .notes li{margin:5px 0} .notes b{color:var(--text)}
+  .tag{display:inline-block;border-radius:4px;padding:0 6px;font-size:11.5px;font-weight:700}
+  .t-live{background:var(--live);color:#fff} .t-cue{background:var(--cue);color:#231700}
+
+  /* the dock */
+  .dock{width:460px;max-width:100%;background:var(--bg);border:1px solid var(--line);border-radius:10px;overflow:hidden;box-shadow:0 10px 40px #0008}
+  .top{display:flex;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid var(--line);background:var(--panel)}
+  .conn{display:flex;align-items:center;gap:6px;color:var(--mute);font-size:12px;flex:1}
+  .dot{width:8px;height:8px;border-radius:50%;background:var(--ok)}
+  .modebtn{border:1px solid var(--line);background:var(--panel2);color:var(--text);border-radius:6px;padding:4px 10px;font:600 12px inherit;cursor:pointer}
+  .modebtn.on{background:var(--text);color:var(--bg)}
+
+  .box{margin:10px;border-radius:10px;padding:10px 12px;position:relative}
+  .label{display:flex;align-items:center;gap:8px;font-size:11.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}
+  .air{background:var(--live-bg);border:2px solid var(--live)}
+  .air.clean{background:var(--panel);border:2px dashed var(--line)}
+  .air .label{color:#ff9a9d} .air.clean .label{color:var(--dim)}
+  .pulse{width:10px;height:10px;border-radius:50%;background:var(--live);animation:p 1.2s infinite}
+  .air.clean .pulse{background:var(--dim);animation:none}
+  @keyframes p{50%{opacity:.25}}
+  .airrow{display:flex;align-items:center;gap:10px;margin-top:6px}
+  .airtxt{flex:1;min-width:0}
+  .airmain{font-size:17px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .airsub{color:var(--mute);font-size:12.5px}
+  .bar{height:5px;background:#0006;border-radius:3px;margin-top:6px;overflow:hidden} .bar i{display:block;height:100%;background:var(--live)}
+  .btn{border:0;border-radius:8px;font-family:inherit;font-weight:800;font-size:14px;cursor:pointer;padding:10px 14px;color:#fff}
+  .b-hide{background:var(--live)} .b-hide:disabled{background:var(--panel2);color:var(--dim);cursor:default}
+
+  .cue{background:var(--cue-bg);border:2px solid var(--cue)}
+  .cue .label{color:var(--cue)}
+  .kind{display:flex;align-items:center;gap:8px;margin-top:8px;color:var(--mute);font-size:12.5px}
+  .kind .ico{font-size:18px}
+  .giliran{display:flex;align-items:baseline;gap:10px;margin-top:4px}
+  .no{font-size:34px;font-weight:900;color:var(--cue);line-height:1;font-variant-numeric:tabular-nums}
+  .of{color:var(--mute);font-size:12.5px}
+  .cuemain{font-size:24px;font-weight:800;line-height:1.15;margin:4px 0 2px;letter-spacing:.01em}
+  .cuesub{color:#e9d6b0;font-size:14px}
+  .file{margin-top:6px;font-size:12px;color:var(--mute);background:#0004;border-radius:6px;padding:5px 8px}
+  .file b{color:var(--text)}
+  .go{width:100%;margin-top:10px;background:var(--cue);color:#231700;font-size:18px;padding:14px;border-radius:10px;display:flex;justify-content:center;gap:10px;align-items:center}
+  .go:disabled{background:var(--panel2);color:var(--mute);cursor:not-allowed;font-size:14px}
+  .go small{font-weight:600;font-size:12px;opacity:.75}
+  .nav{display:flex;gap:8px;margin-top:8px}
+  .nav button{flex:1;background:var(--panel2);color:var(--text);border:1px solid var(--line);font-weight:700}
+  .after{margin:0 10px;display:grid;gap:6px}
+  .after div{display:flex;gap:8px;align-items:center;background:var(--panel);border-radius:8px;padding:6px 10px;color:var(--mute);font-size:12.5px}
+  .after b{color:var(--text);font-weight:600}
+  .after .n{font-variant-numeric:tabular-nums;color:var(--dim);width:34px}
+
+  .run{margin:10px;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+  .runhead{display:flex;justify-content:space-between;padding:8px 10px;background:var(--panel);font-size:12px;color:var(--mute);font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+  .item{display:flex;gap:10px;align-items:center;padding:9px 10px;border-top:1px solid var(--line);cursor:pointer}
+  .item:hover{background:var(--panel)}
+  .item .ico{width:22px;text-align:center}
+  .item .t{flex:1;min-width:0}
+  .item .t b{display:block;font-weight:600}
+  .item .t span{color:var(--mute);font-size:12px}
+  .item.done{opacity:.45} .item.done b{text-decoration:line-through}
+  .item.cued{background:var(--cue-bg);box-shadow:inset 3px 0 var(--cue)}
+  .item.onair{background:var(--live-bg);box-shadow:inset 3px 0 var(--live)}
+  .prog{width:70px;height:5px;background:var(--panel2);border-radius:3px;overflow:hidden} .prog i{display:block;height:100%;background:var(--ok)}
+  .search{margin:10px 10px 0;display:flex;gap:6px}
+  .search input{flex:1;background:var(--panel);border:1px solid var(--line);color:var(--text);border-radius:8px;padding:8px 10px;font:inherit}
+  .hint{color:var(--dim);font-size:11.5px;padding:0 12px 10px}
+
+  /* setup mode */
+  .setup{padding:10px}
+  .step{display:flex;gap:10px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:8px}
+  .step .c{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;background:var(--ok);color:#06140d}
+  .step .c.todo{background:var(--panel2);color:var(--mute)}
+  .step .t{flex:1} .step .t b{display:block} .step .t span{color:var(--mute);font-size:12.5px}
+  .step button{background:var(--panel2);color:var(--text);border:1px solid var(--line);border-radius:6px;padding:6px 10px;font:600 12px inherit;cursor:pointer}
+  .start{width:100%;background:var(--ok);color:#06140d;font-size:16px;padding:13px;border-radius:10px}
+  .hidden{display:none}
+  .toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--live);color:#fff;padding:10px 16px;border-radius:8px;font-weight:700;opacity:0;transition:.3s;pointer-events:none}
+  .toast.show{opacity:1}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="dock" id="dock">
+  <div class="top">
+    <div class="conn"><span class="dot"></span>OBS bersambung · paparan sedia</div>
+    <button class="modebtn" id="mSetup">✎ Persediaan</button>
+    <button class="modebtn on" id="mShow">▶ Majlis</button>
+  </div>
+
+  <!-- MAJLIS -->
+  <div id="show">
+    <div class="box air clean" id="air">
+      <div class="label"><span class="pulse"></span><span id="airLabel">Skrin bersih · tiada apa ke udara</span></div>
+      <div class="airrow">
+        <div class="airtxt"><div class="airmain" id="airMain">—</div><div class="airsub" id="airSub"></div>
+          <div class="bar hidden" id="airBar"><i id="airBarI" style="width:0"></i></div></div>
+        <button class="btn b-hide" id="hide" disabled>SOROK <small>Esc</small></button>
+      </div>
+    </div>
+
+    <div class="box cue">
+      <div class="label">Sedia · belum keluar</div>
+      <div id="cueBody"></div>
+      <button class="btn go" id="go"></button>
+      <div class="nav"><button class="btn" id="prev">◀ Sebelum</button><button class="btn" id="next">Seterusnya ▶</button></div>
+    </div>
+
+    <div class="after" id="after"></div>
+
+    <div class="search"><input id="q" placeholder="Cari nama / nombor giliran… (Enter = jadikan SEDIA)"></div>
+    <div class="run">
+      <div class="runhead"><span>Aturcara majlis</span><span id="runCount"></span></div>
+      <div id="run"></div>
+    </div>
+    <div class="hint">Klik pada aturcara atau hasil carian hanya menjadikannya <b>SEDIA</b>. Tiada apa keluar ke skrin tanpa butang kuning. Space = butang kuning · → Seterusnya · Esc = SOROK.</div>
+  </div>
+
+  <!-- PERSEDIAAN -->
+  <div id="setup" class="setup hidden">
+    <div class="step"><div class="c">✓</div><div class="t"><b>Sambung OBS</b><span>Bersambung · paparan dalam scene «Anugerah»</span></div><button>Tukar</button></div>
+    <div class="step"><div class="c">✓</div><div class="t"><b>Aturcara majlis</b><span>8 item · susun ikut turutan sebenar</span></div><button>Susun</button></div>
+    <div class="step"><div class="c">✓</div><div class="t"><b>Senarai penerima</b><span>senarai-masep.xlsx · 166 nama dalam 3 anugerah</span></div><button>Tukar fail</button></div>
+    <div class="step"><div class="c">✓</div><div class="t"><b>Lagu dan video</b><span>4 fail dijumpai · tempoh disemak</span></div><button>Dengar</button></div>
+    <div class="step"><div class="c todo">5</div><div class="t"><b>Reka paparan nama</b><span>Belum · gaya lalai akan digunakan</span></div><button>Reka</button></div>
+    <button class="btn start" id="start">Mula Majlis ▶</button>
+  </div>
+</div>
+
+<div class="notes">
+  <h1>Panel Pengarah · mockup</h1>
+  <p>Satu panel menggantikan dua tab. Cuba tekan butang kuning, <b>Seterusnya</b>, dan klik item aturcara.</p>
+  <h2>Warna = keadaan, bukan jenis</h2>
+  <ul>
+    <li><span class="tag t-live">MERAH</span> sedang ke udara. Hanya satu benda pada satu masa.</li>
+    <li><span class="tag t-cue">KUNING</span> SEDIA: yang akan keluar bila butang kuning ditekan.</li>
+    <li>Kelabu: selesai / belum.</li>
+  </ul>
+  <h2>Elak tersilap nama (beratus murid)</h2>
+  <ul>
+    <li>Nombor giliran besar <b>46 / 120</b>. Boleh dipadankan dengan nombor pada kerusi atau senarai pengacara.</li>
+    <li>Nama SEDIA ditunjuk besar, berasingan dari yang di skrin. Operator baca sebelum tekan.</li>
+    <li>Klik atau cari nama hanya menjadikannya SEDIA, tidak terus papar.</li>
+    <li>Anugerah ialah seksyen dalam aturcara dengan bar kemajuan (45/120).</li>
+    <li>Tersilap? <b>SOROK</b> (Esc) sentiasa di tempat sama.</li>
+  </ul>
+  <h2>Elak tersilap lagu</h2>
+  <ul>
+    <li>Lagu dinamakan ikut aturcara (“Lagu Negaraku”), bukan nama fail sahaja. Nama fail + tempoh ditunjuk kecil di bawah untuk semakan.</li>
+    <li>Butang bertukar: <b>MAIN LAGU</b> untuk lagu, <b>PAPAR</b> untuk nama/slaid.</li>
+    <li>Persediaan: butang <b>Dengar</b> untuk semak setiap lagu sebelum majlis (keluar di fon kepala, bukan dewan).</li>
+    <li>Semasa lagu dimainkan: bar masa di kotak merah, dan butang kuning <b>DIKUNCI</b>. Space tidak boleh memotong lagu. Lagu hanya berhenti bila tamat atau <b>HENTI</b> ditekan.</li>
+  </ul>
+  <h2>Persediaan vs Majlis</h2>
+  <ul><li>Kata laluan, fail, reka bentuk: semua di <b>Persediaan</b>. Mod Majlis hanya ada perkara untuk ditekan.</li></ul>
+</div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const first = ["NUR AISYAH","MUHAMMAD HAFIZ","SITI NUR HUDA","AHMAD DANIAL","NUR IRDINA","MUHAMMAD AQIL","ALYA SOFEA","ADAM HARRIS","NURUL IMAN","IRFAN HAKIMI","DAHLIA QISTINA","AMIR HAMZAH"];
+const last = ["AHMAD","ROSLI","KAMAL","ISMAIL","ZAINAL","HASSAN","OMAR","YUSOF","RAZAK","SALLEH"];
+const kelas = ["6 Bestari","6 Cerdik","6 Dinamik","5 Bestari","5 Cerdik","4 Dinamik"];
+const people = (n, seed) => Array.from({length:n}, (_, i) => {
+  const a = first[(i*7+seed)%first.length], b = last[(i*3+seed*5)%last.length];
+  return { nama: `${a} ${/^(NUR|SITI|ALYA|DAHLIA|NURUL)/.test(a)?"BINTI":"BIN"} ${b}`, kelas: kelas[(i+seed)%kelas.length] };
+});
+const run = [
+  { k:"video", ico:"🎬", t:"Video pembukaan", file:"01-pembukaan.mp4", dur:130 },
+  { k:"lagu", ico:"♪", t:"Lagu Negaraku", file:"negaraku.mp3", dur:92 },
+  { k:"lagu", ico:"♪", t:"Lagu Wilayah Persekutuan", file:"lagu-wp.mp3", dur:110 },
+  { k:"slaid", ico:"▤", t:"Slaid ucapan Guru Besar", file:"ucapan-gb.pdf", pages:12 },
+  { k:"nama", ico:"🏅", t:"Anugerah Cemerlang UASA", list: people(120, 1) },
+  { k:"nama", ico:"🏅", t:"Tokoh Murid", list: people(6, 4) },
+  { k:"nama", ico:"🏅", t:"Anugerah Sukan", list: people(40, 7) },
+  { k:"video", ico:"🎬", t:"Video penutup", file:"02-penutup.mp4", dur:95 },
+];
+// cue position: item index + sub index (name idx or page)
+let cue = { i:4, s:45 }, air = null, done = new Set(["0","1","2","3"]), shown = new Set();
+for (let s=0;s<45;s++) shown.add("4:"+s);
+let timer = null;
+const $ = id => document.getElementById(id);
+const mmss = s => `${Math.floor(s/60)}:${String(s%60).padStart(2,"0")}`;
+const size = it => it.list ? it.list.length : it.pages || 1;
+
+function stepAfter(c, d) {
+  let { i, s } = c; s += d;
+  while (i >= 0 && i < run.length && (s < 0 || s >= size(run[i]))) { i += d; if (i < 0 || i >= run.length) return null; s = d > 0 ? 0 : size(run[i]) - 1; }
+  return { i, s };
+}
+function describe(c) {
+  const it = run[c.i];
+  if (it.k === "nama") { const p = it.list[c.s]; return { main: p.nama, sub: `${p.kelas} · ${it.t}`, no: c.s+1, of: it.list.length }; }
+  if (it.k === "slaid") return { main: it.t, sub: `Halaman ${c.s+1} / ${it.pages}`, no: null };
+  return { main: it.t, sub: `${it.file} · ${mmss(it.dur)}`, no: null };
+}
+function render() {
+  const it = run[cue.i], d = describe(cue);
+  const kindTxt = { nama:"Nama penerima", lagu:"Lagu (bunyi ke dewan)", video:"Video (gambar + bunyi)", slaid:"Slaid PDF" }[it.k];
+  $("cueBody").innerHTML =
+    `<div class="kind"><span class="ico">${it.ico}</span>${kindTxt}${it.k==="nama"?` · ${it.t}`:""}</div>` +
+    (d.no ? `<div class="giliran"><span class="no">${d.no}</span><span class="of">daripada ${d.of}</span></div>` : "") +
+    `<div class="cuemain">${d.main}</div>` + (it.k==="nama" ? `<div class="cuesub">${d.sub.split(" · ")[0]}</div>` : it.k==="slaid" ? `<div class="cuesub">${d.sub}</div>` : "") +
+    (it.file ? `<div class="file">Fail: <b>${it.file}</b>${it.dur?` · tempoh <b>${mmss(it.dur)}</b>`:""}${it.pages?` · ${it.pages} halaman`:""}</div>` : "");
+  const playing = air && run[air.i].dur;
+  $("go").disabled = !!playing;
+  if (playing) $("go").innerHTML = `🔒 ${run[air.i].k === "lagu" ? "Lagu" : "Video"} sedang dimainkan · tekan HENTI dahulu`;
+  else $("go").innerHTML = it.k === "lagu" ? `♪ MAIN LAGU <small>Space</small>` : it.k === "video" ? `▶ MAIN VIDEO <small>Space</small>` : `PAPAR <small>Space</small>`;
+  const a1 = stepAfter(cue, 1), a2 = a1 && stepAfter(a1, 1);
+  $("after").innerHTML = [a1, a2].filter(Boolean).map((c, k) => { const x = describe(c); return `<div><span class="n">${x.no?"#"+x.no:run[c.i].ico}</span><span>${k?"Kemudian":"Selepas ini"}:</span><b>${x.main}</b></div>`; }).join("");
+  // air
+  const A = $("air");
+  if (!air) { A.className = "box air clean"; $("airLabel").textContent = "Skrin bersih · tiada apa ke udara"; $("airMain").textContent = "—"; $("airSub").textContent = ""; $("hide").disabled = true; $("hide").innerHTML = "SOROK <small>Esc</small>"; $("airBar").classList.add("hidden"); }
+  else { const x = describe(air); A.className = "box air"; $("airLabel").textContent = "Ke udara sekarang"; $("airMain").textContent = (x.no?`#${x.no}  `:"") + x.main; $("airSub").textContent = x.sub; $("hide").disabled = false; $("hide").innerHTML = run[air.i].dur ? "HENTI <small>Esc</small>" : "SOROK <small>Esc</small>"; $("airBar").classList.toggle("hidden", !run[air.i].dur); }
+  // run list
+  $("run").innerHTML = run.map((r, i) => {
+    const st = air && air.i === i ? "onair" : cue.i === i ? "cued" : done.has(String(i)) ? "done" : "";
+    let right = "", sub = r.file ? `${r.file}${r.dur?" · "+mmss(r.dur):""}${r.pages?" · "+r.pages+" hlm":""}` : "";
+    if (r.list) { const n = [...shown].filter(x => x.startsWith(i+":")).length; right = `<div class="prog"><i style="width:${n/r.list.length*100}%"></i></div>`; sub = `${n} / ${r.list.length} nama dipapar`; }
+    return `<div class="item ${st}" data-i="${i}"><span class="ico">${r.ico}</span><div class="t"><b>${r.t}</b><span>${sub}</span></div>${right}</div>`;
+  }).join("");
+  $("runCount").textContent = `${done.size} / ${run.length} selesai`;
+  document.querySelectorAll(".item").forEach(el => el.onclick = () => { cue = { i:+el.dataset.i, s: run[+el.dataset.i].list ? firstUnshown(+el.dataset.i) : 0 }; toast("Disediakan sahaja, belum keluar"); render(); });
+}
+function firstUnshown(i) { for (let s=0;s<run[i].list.length;s++) if (!shown.has(i+":"+s)) return s; return 0; }
+function goLive() {
+  if (air && run[air.i].dur) { toast("Lagu/video sedang dimainkan. Tekan HENTI dahulu."); return; }
+  clearInterval(timer);
+  air = { ...cue }; const it = run[air.i];
+  if (it.list) shown.add(air.i+":"+air.s);
+  if (it.dur) { let t = 0; timer = setInterval(() => { t++; $("airBarI").style.width = (t/it.dur*100)+"%"; $("airSub").textContent = `${it.file} · ${mmss(t)} / ${mmss(it.dur)}`; if (t >= it.dur) hide(); }, 1000); }
+  if (!it.list && !it.pages) done.add(String(air.i));
+  const n = stepAfter(cue, 1); if (n && (it.list || it.pages)) cue = n; else if (n) cue = n;
+  render();
+}
+function hide() { clearInterval(timer); if (air && run[air.i].list && air.s === run[air.i].list.length-1) done.add(String(air.i)); air = null; render(); }
+function toast(t) { const e = $("toast"); e.textContent = t; e.classList.add("show"); setTimeout(() => e.classList.remove("show"), 1400); }
+$("go").onclick = goLive; $("hide").onclick = hide;
+$("next").onclick = () => { if (air && run[air.i].list) hide(); const n = stepAfter(cue, 1); if (n) cue = n; render(); };
+$("prev").onclick = () => { const n = stepAfter(cue, -1); if (n) cue = n; render(); };
+$("q").onkeydown = e => { if (e.key !== "Enter") return; const v = e.target.value.trim().toUpperCase(); if (!v) return;
+  for (let i=0;i<run.length;i++) if (run[i].list) { const s = /^\d+$/.test(v) && run[i] === run[cue.i] ? +v-1 : run[i].list.findIndex(p => p.nama.includes(v)); if (s >= 0 && s < run[i].list.length) { cue = { i, s }; e.target.value = ""; toast("Disediakan sahaja, semak sebelum tekan PAPAR"); render(); return; } }
+  toast("Tiada padanan"); };
+document.addEventListener("keydown", e => { if (e.target.tagName === "INPUT") return;
+  if (e.code === "Space") { e.preventDefault(); goLive(); } else if (e.key === "Escape") hide(); else if (e.key === "ArrowRight") $("next").click(); else if (e.key === "ArrowLeft") $("prev").click(); });
+$("mSetup").onclick = () => { $("show").classList.add("hidden"); $("setup").classList.remove("hidden"); $("mSetup").classList.add("on"); $("mShow").classList.remove("on"); };
+$("mShow").onclick = $("start").onclick = () => { $("setup").classList.add("hidden"); $("show").classList.remove("hidden"); $("mShow").classList.add("on"); $("mSetup").classList.remove("on"); };
+render();
+</script>
+</body>
+</html>

@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="ms">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pasang Kawalan Majlis</title>
+<style>
+  :root{--bg:#f6f7f9;--card:#fff;--text:#1b1d22;--mute:#5d6270;--line:#e1e4ea;--accent:#1f6f4a;--code:#eef1f5;--live:#c93a3f;--cue:#b97800}
+  @media (prefers-color-scheme:dark){:root{--bg:#16171b;--card:#1f2127;--text:#e8e9ec;--mute:#a0a4b1;--line:#33363f;--accent:#46b483;--code:#2a2d35;--live:#ff6b70;--cue:#f5a524}}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font:15px/1.6 -apple-system,"Segoe UI",system-ui,sans-serif;padding:32px 16px 64px}
+  main{max-width:760px;margin:0 auto}
+  h1{font-size:26px;margin:0 0 4px} .lead{color:var(--mute);margin:0 0 28px}
+  .step{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:18px 20px;margin-bottom:14px}
+  .step h2{font-size:17px;margin:0 0 8px;display:flex;gap:10px;align-items:center}
+  .n{flex:none;width:26px;height:26px;border-radius:50%;background:var(--accent);color:#fff;font-size:14px;display:flex;align-items:center;justify-content:center}
+  .step p,.step li{color:var(--mute);margin:6px 0} .step b{color:var(--text)}
+  .url{display:flex;gap:8px;align-items:center;margin:8px 0}
+  .url span{flex:none;width:150px;font-weight:600;font-size:14px}
+  .url code{flex:1;min-width:0;background:var(--code);padding:8px 10px;border-radius:6px;font-size:12.5px;overflow-x:auto;white-space:nowrap}
+  .url button{flex:none;border:1px solid var(--line);background:var(--card);color:var(--text);border-radius:6px;padding:7px 12px;font-weight:600;font-size:13px;font-family:inherit;cursor:pointer}
+  table{border-collapse:collapse;margin:8px 0;font-size:14px} td,th{border:1px solid var(--line);padding:5px 12px;text-align:left}
+  details{margin-top:10px} summary{cursor:pointer;color:var(--text)}
+  .merah{color:var(--live);font-weight:700} .kuning{color:var(--cue);font-weight:700}
+  @media (max-width:560px){.url{flex-wrap:wrap}.url span{width:100%}}
+</style>
+</head>
+<body>
+<main>
+  <h1>Pasang Kawalan Majlis dalam OBS</h1>
+  <p class="lead" style="margin:0 0 6px">Versi 2.0 · oleh Cikgu Aime · perisian bebas, lesen GPL (lihat LESEN.txt)</p>
+  <p class="lead">Satu panel untuk OBS Studio 28 ke atas (Windows dan Mac) yang menjalankan seluruh majlis ikut aturcara: nama penerima anugerah, lagu, video, slaid PDF, gambar dan muzik latar. Tiada internet diperlukan untuk panel ini.</p>
+
+  <div class="step">
+    <h2><span class="n">1</span>Jangan alihkan folder ini selepas dipasang</h2>
+    <p>Ekstrak fail ZIP dahulu, kemudian salin folder <b>kawalan-majlis</b> ke cakera komputer (contoh: Documents), <b>bukan</b> dijalankan terus dari pendrive atau dari dalam ZIP. Kalau folder dialih, jalankan pemasang (langkah 2) sekali lagi.</p>
+  </div>
+
+  <div class="step">
+    <h2><span class="n">2</span>Jalankan pemasang</h2>
+    <p><b>Tutup OBS dahulu.</b> Pemasang menghidupkan WebSocket OBS dan menambah panel <b>Kawalan Majlis</b>, siap dengan kata laluan. Tetapan lama disandarkan dahulu, dan panel lain dalam OBS tidak disentuh.</p>
+    <p><b>Windows:</b> klik dua kali <b>Pasang.bat</b>. Jika keluar "Windows protected your PC", tekan <b>More info → Run anyway</b>.</p>
+    <p><b>Mac:</b> klik kanan <b>Pasang.command → Open</b>, kemudian <b>Open</b> sekali lagi (kali pertama sahaja).</p>
+    <p>Bila tertulis <b>Siap!</b>, buka OBS. Panel <b>Kawalan Majlis</b> muncul. Jika tidak kelihatan, buka menu <b>Docks</b> dan tandakan Kawalan Majlis. Seret panel ke tepi skrin OBS ikut keselesaan.</p>
+    <p><b>Dari versi 1.2:</b> panel lama Kawalan Anugerah dan Kawalan Media dibuang dari OBS oleh pemasang (failnya kekal dalam folder). Senarai penerima, kedudukan, reka paparan dan susunan media dibawa masuk sendiri ke panel baharu.</p>
+    <details>
+      <summary><b>Cara manual</b> (jika pemasang tidak dapat dijalankan)</summary>
+      <p>a. Menu <b>Tools → WebSocket Server Settings</b>. Tandakan <b>Enable WebSocket server</b>, tekan <b>Apply</b>. Tekan <b>Show Connect Info</b> dan salin <b>Server Password</b>.</p>
+      <p>b. Menu <b>Docks → Custom Browser Docks</b>. Isi baris di bawah, kemudian tekan <b>Apply</b>:</p>
+      <div class="url"><span>Kawalan Majlis</span><code id="u1"></code><button data-c="u1">Salin</button></div>
+      <p>c. Dalam panel, tekan <b>✎ Persediaan → Tetapan</b>, tampal kata laluan WebSocket dan tekan <b>Sambung</b>.</p>
+    </details>
+    <details>
+      <summary><b>Kembali ke panel versi 1.2</b> (sandaran, jika diperlukan)</summary>
+      <p>Panel lama masih ada dalam folder ini. Menu <b>Docks → Custom Browser Docks</b>, tambah dua baris ini, tekan <b>Apply</b>, kemudian sambung dengan kata laluan WebSocket dalam panel Kawalan Anugerah (Tetapan). Data senarai dan media yang sama digunakan.</p>
+      <div class="url"><span>Kawalan Anugerah</span><code id="u2"></code><button data-c="u2">Salin</button></div>
+      <div class="url"><span>Kawalan Media</span><code id="u3"></code><button data-c="u3">Salin</button></div>
+    </details>
+  </div>
+
+  <div class="step">
+    <h2><span class="n">3</span>Persediaan: sambung OBS dan pasang paparan</h2>
+    <p>Semua kerja persediaan ada di <b>✎ Persediaan</b>, dalam lima langkah yang bertanda ✓ bila siap. Mod <b>▶ Majlis</b> hanya ada perkara untuk ditekan semasa majlis.</p>
+    <p><b>Sambung OBS:</b> panel bersambung sendiri. Tekan <b>Tetapan</b>, tandakan scene yang perlu ada nama dan media, kemudian tekan <b>Pasang ke scene ditanda</b>. Bila siap, bahagian atas panel tertulis <b>Bersambung · paparan OBS sedia</b>. Lakukan sekali lagi jika ada scene baharu atau kata laluan WebSocket ditukar.</p>
+    <p>Kotak berwarna di bawahnya menunjukkan ke mana paparan keluar. <b>Hijau, PREVIEW</b>: hanya operator nampak, jadi semak dahulu dan tekan Transition. <b>Merah, PROGRAM</b>: terus keluar ke penonton. <b>Kuning</b>: scene yang ada paparan tiada di skrin, jadi tukar ke scene itu dahulu.</p>
+  </div>
+
+  <div class="step">
+    <h2><span class="n">4</span>Senarai penerima</h2>
+    <p>Fail Excel (.xlsx) atau CSV dengan tiga lajur. Contoh ada dalam folder ini: <b>contoh-senarai.xlsx</b>.</p>
+    <table><tr><th>Nama</th><th>Kelas</th><th>Anugerah</th></tr><tr><td>NUR AISYAH BINTI AHMAD</td><td>6 Bestari</td><td>Anugerah Cemerlang UASA</td></tr></table>
+    <p>Susun baris ikut turutan murid naik pentas. Setiap anugerah menjadi satu seksyen dalam aturcara, dengan nombor giliran sendiri (contoh: <b>46 daripada 120</b>), supaya mudah dipadankan dengan senarai pengacara atau nombor kerusi.</p>
+    <p>Nama salah eja? Betulkan dalam Excel dan pilih fail sekali lagi: tanda "sudah dipapar" dan kedudukan dikekalkan ikut nama. Semasa majlis, boleh juga tekan <b>Betulkan nama</b> dalam kotak kuning.</p>
+  </div>
+
+  <div class="step">
+    <h2><span class="n">5</span>Aturcara majlis</h2>
+    <p>Tambah bahan dengan <b>+ Lagu</b>, <b>+ Video</b>, <b>+ Slaid PDF</b> dan <b>+ Gambar</b>, kemudian susun semua item (termasuk seksyen anugerah) ikut turutan sebenar dengan ↑ ↓. Tekan ✎ untuk menamakan item dan ✕ dua kali untuk membuang.</p>
+    <ul>
+      <li><b>Lagu dan video:</b> tetingkap OBS terbuka. Tekan Browse, pilih fail, kemudian OK. Namakan setiap lagu ikut aturcara (contoh: <b>Lagu Negaraku</b>), supaya yang dibaca operator ialah nama lagu, bukan nama fail.</li>
+      <li>Jangan pindah atau tukar nama fail lagu dan video selepas ditambah. Jika berlaku, panel memberi amaran <b>Fail tidak dijumpai</b>.</li>
+      <li>Tempoh lagu ditunjuk selepas lagu dimainkan sekali. Main setiap lagu sekali semasa latihan untuk semakan.</li>
+      <li>Slaid PowerPoint atau Canva: eksport sebagai PDF dahulu. Beberapa gambar yang dipilih sekali gus menjadi satu item, disusun ikut nama fail.</li>
+    </ul>
+  </div>
+
+  <div class="step">
+    <h2><span class="n">6</span>Muzik latar dan reka paparan nama (pilihan)</h2>
+    <p><b>Muzik latar</b> berulang semasa menunggu, contohnya sebelum majlis atau semasa murid beratur. Ia saluran berasingan: nama dan slaid boleh dipapar semasa muzik latar berbunyi. Bila lagu atau video aturcara dimainkan, muzik latar dikecilkan sendiri dan dikembalikan selepas itu.</p>
+    <p><b>Reka paparan nama</b>: tanpa langkah ini, nama keluar dengan gaya lalai (teks putih di tengah bawah).</p>
+    <ul>
+      <li><b>Templat</b>: Tengah bawah, Kiri bawah atau Tengah skrin. Satu klik, semua teks berpindah.</li>
+      <li><b>Gambar latar / bingkai</b>: reka di Canva saiz 1920 × 1080 dan muat turun sebagai PNG dengan latar telus (transparent).</li>
+      <li><b>Seret</b> teks atau gambar dalam pratonton untuk mengalih. <b>Tarik bucu</b> untuk mengubah saiz: kotak lebih tinggi bermakna huruf lebih besar. Kekunci anak panah mengalih sedikit demi sedikit.</li>
+      <li><b>Font</b>: 7 font tersedia, atau tekan <b>+ Font sendiri</b> untuk fail .ttf/.otf.</li>
+      <li>Untuk ruang yang lebih besar, tarik panel keluar dari OBS dan besarkan tetingkapnya. Reka bentuk disimpan sendiri.</li>
+    </ul>
+  </div>
+
+  <div class="step">
+    <h2><span class="n">7</span>Semasa majlis</h2>
+    <p>Tekan <b>Mula Majlis ▶</b>. Warna menunjukkan keadaan:</p>
+    <ul>
+      <li><span class="merah">MERAH: ke udara sekarang.</span> Hanya satu benda pada satu masa. Butang <b>SOROK</b> (atau <b>HENTI</b> untuk lagu dan video) sentiasa di tempat yang sama. Kekunci <b>Esc</b>; untuk lagu dan video tekan Esc dua kali (sesetengah clicker menghantar Esc sendiri).</li>
+      <li><span class="kuning">KUNING: SEDIA, belum keluar.</span> Nombor giliran dan nama ditunjuk besar. Baca dahulu, kemudian tekan butang kuning (<b>PAPAR</b>, <b>♪ MAIN LAGU</b> atau <b>▶ MAIN VIDEO</b>) atau <b>Space</b>.</li>
+      <li>Butang kuning ialah <b>satu-satunya</b> cara sesuatu keluar ke skrin. Klik pada aturcara, senarai nama atau hasil carian hanya menjadikannya SEDIA.</li>
+      <li><b>Seterusnya</b> (→, PageDown atau clicker) menyorok nama yang dipapar dan menyediakan nama berikut. Semasa slaid dipapar, Seterusnya menukar halaman terus.</li>
+      <li>Semasa lagu atau video dimainkan, butang kuning <b>dikunci</b>: Space tidak boleh memotong atau mengulang lagu. Seterusnya hanya mengalih SEDIA. Lagu berhenti bila tamat atau bila <b>HENTI</b> ditekan (bunyi dikecilkan perlahan). Bila tamat, item berikut menjadi SEDIA.</li>
+      <li>Cari nama atau nombor giliran dalam kotak carian. <b>Enter</b> menjadikannya SEDIA sahaja. Amaran ⚠ keluar jika nama itu sudah dipapar tadi.</li>
+      <li>Persediaan tidak boleh dibuka semasa ada yang ke udara. Klik pada panel dahulu supaya kekunci dan clicker slaid berfungsi.</li>
+      <li>Kedudukan dan tanda "sudah dipapar" kekal walaupun OBS atau panel dimuat semula. Jika panel dimuat semula semasa lagu, kotak merah dan kunci dipulihkan sendiri.</li>
+    </ul>
+  </div>
+
+  <div class="step">
+    <h2><span class="n">8</span>Bilik Kawalan (paparan besar)</h2>
+    <p>Tarik panel Kawalan Majlis keluar dari OBS dan besarkan (lebar 1000 piksel ke atas), atau letak di skrin kedua. Panel bertukar sendiri ke <b>Bilik Kawalan</b>: Preview (oren), Program (merah), deretan input, peralihan dan audio dalam satu skrin. Tetapan ada dalam <b>✎ Persediaan → Paparan besar</b> (Auto, Sentiasa atau Tidak). Di Mac, besarkan dengan menarik bucu tetingkap, bukan butang hijau.</p>
+    <ul>
+      <li><b>Input</b> ialah scene OBS. Klik = ke Preview, klik dua kali = terus ke Program, atau kekunci <b>1–9</b>. Bertukar input <b>tidak pernah</b> menyentuh audio.</li>
+      <li><b>CUT</b> (Enter) dan <b>FADE</b> (F) menghantar Preview ke Program. Tempoh fade boleh dipilih. Tarik <b>T-bar</b> melepasi separuh dan lepaskan untuk FADE.</li>
+      <li><b>FTB</b> menukar ke skrin hitam. Tekan sekali lagi untuk kembali ke scene tadi.</li>
+      <li><b>Audio</b>: meter, kuat perlahan, <b>M</b> = bisu, <b>S</b> = dengar di fon kepala (ikut peranti Audio Monitoring dalam tetapan OBS). Muzik latar bertanda DIKECILKAN semasa lagu.</li>
+      <li><b>REC</b> mula dan henti rakaman. <b>LIVE</b> mula siaran; untuk henti, <b>tekan dan tahan 2 saat</b>. Bingkai tercicir dan CPU OBS sentiasa dipapar.</li>
+      <li>Jika kamera ditukar dengan switcher, sembunyikan deretan input dalam Persediaan.</li>
+      <li>Gambar dalam kotak dikemas kini sekitar 10 kali sesaat (Preview, Program) dan 2 kali sesaat (input). Video penuh dan licin tetap dalam OBS.</li>
+    </ul>
+  </div>
+
+  <div class="step">
+    <h2><span class="n">9</span>Siaran langsung (livestream)</h2>
+    <ul>
+      <li>Panel ini tidak memerlukan internet. Internet hanya untuk siaran OBS ke YouTube atau Facebook.</li>
+      <li><b>Nama dan kelas murid menjadi awam</b> dalam siaran dan rakamannya. Ikut polisi sekolah tentang paparan nama murid.</li>
+      <li><b>Lagu berhak cipta</b> boleh menyebabkan siaran dibisukan atau disekat oleh platform. Lagu dan video dari panel masuk ke Audio Mixer OBS, jadi keluar ke dewan <b>dan</b> ke siaran.</li>
+      <li>Jika kamera ditukar dengan switcher, masukkan output switcher ke OBS sebagai satu sumber (capture card) dalam scene yang sama dengan paparan. Panel ini tidak menukar kamera.</li>
+      <li>Jika guna Studio Mode, perhatikan kotak PREVIEW / PROGRAM di atas panel sebelum menekan butang kuning.</li>
+      <li><b>Studio Mode: matikan "Duplicate Scene".</b> Klik kanan butang Transition (di tengah, antara Preview dan Program) dan buang tanda "Duplicate Scene". Jika dibiarkan, video dan lagu yang dimainkan panel tidak keluar ke siaran. Kawalan Majlis Studio mematikannya sendiri.</li>
+    </ul>
+  </div>
+</main>
+<script>
+  const base = location.href.split(/[?#]/)[0].replace(/[^/]*$/, "");
+  document.getElementById("u1").textContent = base + "kawalan-majlis.html";
+  document.getElementById("u2").textContent = base + "kawalan-anugerah.html";
+  document.getElementById("u3").textContent = base + "kawalan-media.html";
+  document.querySelectorAll("button[data-c]").forEach(b => b.onclick = async () => {
+    const t = document.getElementById(b.dataset.c).textContent;
+    try { await navigator.clipboard.writeText(t); } catch (_) {
+      const r = document.createRange(); r.selectNodeContents(document.getElementById(b.dataset.c));
+      getSelection().removeAllRanges(); getSelection().addRange(r); document.execCommand("copy");
+    }
+    b.textContent = "Disalin"; setTimeout(() => b.textContent = "Salin", 1500);
+  });
+</script>
+</body>
+</html>

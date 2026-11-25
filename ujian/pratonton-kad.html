@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="ms">
+<head>
+<meta charset="utf-8">
+<base href="../">
+<title>Pratonton kad nama</title>
+<style>
+  html,body{margin:0;width:1920px;height:1080px;overflow:hidden;background:#222}
+  #latar{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+  #stage{position:absolute;left:0;top:0;width:1920px;height:1080px}
+</style>
+</head>
+<body>
+<img id="latar" alt="">
+<div id="stage"></div>
+<script src="lib/gaya.js"></script>
+<script>
+  // Preview of a name-card template over a camera still: pratonton-kad.html?t=emas&nama=...&kelas=...&anugerah=...&latar=<file url>
+  const q = new URLSearchParams(location.search);
+  if (q.get("latar")) document.getElementById("latar").src = q.get("latar");
+  const G = KM.gaya, L = G.applyTemplate(G.defaults(), q.get("t") || "emas");
+  G.render(document.getElementById("stage"), L, {
+    anugerah: q.get("anugerah") || "Anugerah Akademik MASEP 2026",
+    nama: q.get("nama") || "Nur Alia Balqis binti Ahmad Fauzi",
+    kelas: q.get("kelas") || "1 Topaz",
+  }, {});
+</script>
+</body>
+</html>
